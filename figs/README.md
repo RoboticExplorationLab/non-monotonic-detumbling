@@ -1,0 +1,1 @@
+Figure files - all should be in `*.pdf`, `*.png`, and `*.tikz` formats.
