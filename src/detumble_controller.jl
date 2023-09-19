@@ -1,6 +1,7 @@
 import SatelliteDynamics
+using Interpolations
+
 include("satellite_simulator.jl")
-include("mrp_attitude_planner.jl")
 
 """ bcross_control(x, epc)
 Detumble controller
@@ -106,6 +107,40 @@ function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPara
     end
 
     return m
+end
+
+function compute_B_vectors(params::OrbitDynamicsParameters, orbit, dt)
+    Nt = length(orbit)
+    B_vectors = [zeros(eltype(orbit[1]), 3) for _ = 1:Nt]
+
+    @progress "compute_B_vectors" for k = 1:Nt
+        epc = params.start_epoch + (k - 1) * dt
+        B_vectors[k] .= magnetic_B_vector(orbit[k][1:3], epc, params)
+    end
+
+    return B_vectors
+end
+
+function interpolate_B_vectors(B_vectors, time_range)
+
+    B_x_interp = scale(interpolate([B_k[1] for B_k in B_vectors], BSpline(Cubic(Line(OnGrid())))), time_range)
+    B_y_interp = scale(interpolate([B_k[2] for B_k in B_vectors], BSpline(Cubic(Line(OnGrid())))), time_range)
+    B_z_interp = scale(interpolate([B_k[3] for B_k in B_vectors], BSpline(Cubic(Line(OnGrid())))), time_range)
+
+    function clampt(t)
+        tc = clamp(t, time_range[1], time_range[end])
+        if t != tc
+            @warn "Clamped $t to $tc" maxlog = 1
+        end
+        return tc
+    end
+
+    function B_vec_interp(t)
+        tc = clampt(t)
+        return [B_x_interp(tc), B_y_interp(tc), B_z_interp(tc)]
+    end
+
+    return B_vec_interp
 end
 
 function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParameters, dt_orbit, Nt_orbit)
