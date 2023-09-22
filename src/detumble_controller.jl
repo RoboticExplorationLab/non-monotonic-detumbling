@@ -6,7 +6,7 @@ include("satellite_simulator.jl")
 function h_B_aligned_initial_conditions(x0::Vector{<:Real}, ω_magnitude_rad_s, params::OrbitDynamicsParameters)
     B0 = magnetic_B_vector(x0[1:3], 0.0, params) # inertial frame B
     b0 = B0 / norm(B0)
-    h0 = eigen(params.satellite_model.inertia).vectors[:, end] # smallest principle axis
+    h0 = eigen(params.satellite_model.inertia).vectors[:, end] # largest principle axis
     ω0 = params.satellite_model.inertia \ h0
     ω0 = ω_magnitude_rad_s * ω0 / norm(ω0)
     bperp = cross(b0, h0)
