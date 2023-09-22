@@ -3,6 +3,21 @@ using Interpolations
 
 include("satellite_simulator.jl")
 
+function h_B_aligned_initial_conditions(x0::Vector{<:Real}, ω_magnitude_rad_s, params::OrbitDynamicsParameters)
+    B0 = magnetic_B_vector(x0[1:3], 0.0, params) # inertial frame B
+    b0 = B0 / norm(B0)
+    h0 = eigen(params.satellite_model.inertia).vectors[:, end] # smallest principle axis
+    ω0 = params.satellite_model.inertia \ h0
+    ω0 = ω_magnitude_rad_s * ω0 / norm(ω0)
+    bperp = cross(b0, h0)
+    bperp = bperp / norm(bperp)
+    θ0 = acos(b0'h0)
+    q0 = [sin(θ0 / 2); bperp * cos(θ0 / 2)]
+    q0 = q0 / norm(q0)
+
+    return [x0[1:6]; q0; ω0]
+end
+
 """ bcross_control(x, epc)
 Detumble controller
 See Markley and Crassidis eq 7.48, p 308
