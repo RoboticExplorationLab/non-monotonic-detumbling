@@ -158,6 +158,30 @@ function interpolate_B_vectors(B_vectors, time_range)
     return B_vec_interp
 end
 
+function blookahead_core(B1, B2, J, ω, k, α)
+    B1norm = norm(B1)
+    B2norm = norm(B1)
+
+    b1 = B1 / B1norm
+    b2 = B2 / B2norm
+
+    b̄ = [hat(b1) hat(b2)]'
+
+    Z = [I(3) zeros(3, 3); zeros(3, 6)]
+
+    Q1 = Z * b̄ * b̄' * Z
+    Q2 = α * b̄ * b̄'
+
+
+    h = J * ω
+    q1 = Z * b̄ * h
+    q2 = α * b̄ * h
+
+    m̄ = (I + Q1 + Q2) \ (q1 + q2)
+
+    m = tanh.(k * m̄[1:3])
+end
+
 function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParameters, dt_orbit, Nt_orbit)
     r0 = x0[1:3]
     v0 = x0[4:6]
@@ -168,7 +192,7 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
     B_interp = interpolate_B_vectors(B_vectors, 0:dt_orbit:orbit_time)
 
 
-    function blookahead_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tlookahead=10 * 60)
+    function blookahead_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tlookahead=10 * 60, α=10)
         q = x[7:10]
         B1 = magnetic_B_vector_body(x, t, params)
         B1_inertial = B_interp(t)
@@ -176,20 +200,10 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
         B1_test = Q(q)'B1_inertial
         B2 = Q(q)'B2_inertial
 
-        B1norm = norm(B1)
-        B2norm = norm(B1)
-
-        b1 = B1 / B1norm
-        b2 = B2 / B2norm
-
-        b̄ = [hat(b1) hat(b2)]
-
         ω = x[11:13]
         J = params.satellite_model.inertia
 
-        m̄ = (I + b̄'b̄) \ (b̄'J * ω)
-
-        m = tanh.(k * m̄[1:3])
+        m = blookahead_core(B1, B2, J, ω, k, α)
 
         if saturate
             model = params.satellite_model
@@ -214,20 +228,10 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
 
     B2 = B1 + tderivative * B1dot
 
-    B1norm = norm(B1)
-    B2norm = norm(B2)
-
-    b1 = B1 / B1norm
-    b2 = B2 / B2norm
-
-    b̄ = [hat(b1) hat(b2)]
-
     ω = x[11:13]
     J = params.satellite_model.inertia
 
-    m̄ = (I + b̄'b̄) \ (b̄'J * ω)
-
-    m = tanh.(k * m̄[1:3])
+    m = blookahead_core(B1, B2, J, ω, k, α)
 
     if saturate
         model = params.satellite_model
