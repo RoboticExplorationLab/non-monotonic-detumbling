@@ -124,6 +124,20 @@ function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPara
     return m
 end
 
+function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), ϵ = 10e-4, k1=1.0, k2=1.0, saturate = true)
+    ω = x[11:13]
+    J = params.satellite_model.inertia
+    Bnorm = norm(B)
+    Jω = J*ω
+    k = k1*exp.(-k2*norm((B')/Bnorm*(Jω/(norm(Jω)+ϵ))))
+    m = -(k/(Bnorm^2))*hat(B)'*Jω
+    if saturate
+        model = params.satellite_model
+        m .= clamp.(m, -model.max_dipoles, model.max_dipoles)
+    end
+    return m
+end
+
 function compute_B_vectors(params::OrbitDynamicsParameters, orbit, dt)
     Nt = length(orbit)
     B_vectors = [zeros(eltype(orbit[1]), 3) for _ = 1:Nt]
