@@ -265,27 +265,44 @@ end
 """
     From "A new variant of the B-dot control for spacecraft magnetic detumbling"
 """
-function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10*60)
+function make_bdot_variant(time_step)
 
-    v = x[4:6]
+    buffer = [zeros(3), zeros(3), zeros(3), zeros(3)]
 
-    B = magnetic_B_vector_body(x, t, params)
-    B̂ = normalized_magnetic_B_vector_body(x, t, params)
-    dBdx = ForwardDiff.jacobian(x_ -> magnetic_B_vector_body(x_, t, params), x)
-    dBdr = dBdx[1:3, 1:3]
-    B̂dot = dBdr * v * tderivative / norm(B)
+    function update_bdot_estimate(buffer, B, dt)
+        # Use five point stencil to estimate Bdot
 
-    ε = 1e-2
-    Σ = Diagonal([ε, ε, ε]) + hat(B̂)
+        Bdot = (3 * buffer[4] - 16 * buffer[3] + 36 * buffer[2] - 48 * buffer[1] + 25 * B) / (12 * dt)
 
-    M = -(k/norm(B)) * cross(B̂, inv(Σ) * B̂dot)
+        buffer[2:4] = buffer[1:3]
+        buffer[1] = B
 
-    if saturate
-        model = params.satellite_model
-        M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
+        return Bdot
     end
 
-    return M
+    function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
+
+        v = x[4:6]
+
+        B = magnetic_B_vector_body(x, t, params)
+        B̂ = normalized_magnetic_B_vector_body(x, t, params)
+        Bdot = update_bdot_estimate(buffer, B, time_step)
+        B̂dot = Bdot / norm(B)
+
+        ε = 1e-2
+        Σ = Diagonal([ε, ε, ε]) + hat(B̂)
+
+        M = -(k/norm(B)) * cross(B̂, inv(Σ) * normalize(B̂dot))
+
+        if saturate
+            model = params.satellite_model
+            M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
+        end
+
+        return M
+    end
+
+    return bdot_variant
 end
 
 
