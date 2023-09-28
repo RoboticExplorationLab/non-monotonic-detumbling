@@ -255,6 +255,13 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
     return m
 end
 
+function bdot_variant(x::AbstractVector{<:Real}, t::Real, params::OrbitDynamicsParameters, k=1.0, saturate=true, tderivatie=10*60)
+    ε = 1e-2
+    Σ = Diagonal([ε, ε, ε])
+    M = -(k_ω/B) * cross(B̂, inv(Σ) * B̂_dot)
+    return M
+end
+
 
 function plot_omega_cross_B(thist, xhist, params; max_samples=1000, title="")
     downsample = get_downsample(length(thist), max_samples)
