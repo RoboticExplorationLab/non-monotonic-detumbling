@@ -255,10 +255,27 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
     return m
 end
 
-function bdot_variant(x::AbstractVector{<:Real}, t::Real, params::OrbitDynamicsParameters, k=1.0, saturate=true, tderivatie=10*60)
+function normalized_magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
+    B = magnetic_B_vector_body(x, t, params)
+    Bnorm = norm(B)
+    return B / Bnorm
+end
+
+function bdot_variant(x::AbstractVector{<:Real}, t::Real, params::OrbitDynamicsParameters, k=1.0, saturate=true, tderivative=10*60)
+
+    v = x[4:6]
+
     ε = 1e-2
     Σ = Diagonal([ε, ε, ε])
-    M = -(k_ω/B) * cross(B̂, inv(Σ) * B̂_dot)
+
+    B̂ = magnetic_B_vector_body(x, t, params)
+    dB̂dx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
+    dB̂dr = dB̂dx[1:3, 1:3]
+    B̂dot = dB̂dr * v * tderivative
+    B̂dot = Σ * ω̃_bi 
+
+    M = -(k_ω/B) * cross(B̂, inv(Σ) * B̂dot)
+
     return M
 end
 
