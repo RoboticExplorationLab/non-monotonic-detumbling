@@ -74,7 +74,7 @@ function mc_plot_momentum_magnitude_final_histogram(mc_results, params; max_samp
         ylims=(0, max_ylim),
         layout=(Ncontrollers, 1),
         ylabel="Count",
-        legend=true)
+        legend=false)
 end
 
 datafilename = "mc_orbit_varied.jld2"
