@@ -21,6 +21,15 @@ function SatelliteFace(
     )
 end
 
+function toDict(m::SatelliteFace)
+    return Dict(
+        "area" => m.area,
+        "normal" => m.normal,
+        "position" => m.position,
+        "reflectivity_coefficient_ϵ" => m.reflectivity_coefficient_ϵ
+    )
+end
+
 struct SatelliteModel
     # fixed parameters
     mass::Real # kg
@@ -43,6 +52,18 @@ Base.copy(m::SatelliteModel) = SatelliteModel(
     m.max_drag_area,
     m.max_dipoles,
 )
+function toDict(m::SatelliteModel)
+    return Dict(
+        "mass" => m.mass,
+        "inertia" => m.inertia,
+        "center_of_mass" => m.center_of_mass,
+        "faces" => [toDict(face) for face in m.faces],
+        "drag_coefficient" => m.drag_coefficient,
+        "min_drag_area" => m.min_drag_area,
+        "max_drag_area" => m.max_drag_area,
+        "max_dipoles" => m.max_dipoles,
+    )
+end
 
 sat_dipole_magnitude(N, I, A) = N * I * A # N turns, I amps, A area
 
