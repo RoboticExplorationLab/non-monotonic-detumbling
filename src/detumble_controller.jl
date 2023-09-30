@@ -361,6 +361,30 @@ function make_bdot_variant(time_step)
     return bdot_variant
 end
 
+function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
+
+    v = x[4:6]
+
+    B = magnetic_B_vector_body(x, t, params)
+    B̂ = normalized_magnetic_B_vector_body(x, t, params)
+    dBdx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
+    dBdr = dBdx[1:3, 1:3]
+    Bdot = dBdr * v
+    B̂dot = Bdot / norm(B)
+
+    ε = 1e-2
+    Σ = Diagonal([ε, ε, ε]) + hat(B̂)
+
+    M = -(k / norm(B)) * cross(B̂, inv(Σ) * normalize(B̂dot))
+
+    if saturate
+        model = params.satellite_model
+        M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
+    end
+
+    return M
+end
+
 function plot_omega_cross_B(thist, xhist, params; max_samples=1000, title="")
     downsample = get_downsample(length(thist), max_samples)
     xds = xhist[:, downsample]

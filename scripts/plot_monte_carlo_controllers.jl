@@ -8,6 +8,7 @@ using Plots
 plotly()
 
 function mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500, title="")
+    Ncontrollers = length(keys(mc_results))
     plots = []
     J = params["satellite_model"]["inertia"]
     max_ylim = 0.0
@@ -32,7 +33,7 @@ function mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500,
     plot!(plots[end], xlabel="Time (hours)")
     plot(plots...,
         plot_title=title,
-        layout=(4, 1),
+        layout=(Ncontrollers, 1),
         size=(600, 800),
         ylims=(0, max_ylim),
         ylabel="Momentum (Nms)",
