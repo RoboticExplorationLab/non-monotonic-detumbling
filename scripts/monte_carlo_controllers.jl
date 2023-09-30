@@ -38,10 +38,10 @@ controllers = Dict(
     "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; saturate=true),
 )
 
-Ntrials = 1
+Ntrials = 100
 
 
-mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=10.0, controller_dt=0.0)
+mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=0.1, controller_dt=0.0)
 
 
 datafilename = "mc_orbit_varied.jld2"
