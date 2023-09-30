@@ -62,7 +62,7 @@ function mc_plot_momentum_magnitude_final_histogram(mc_results, params; max_samp
     plots = []
     max_ylim = 0.0
     for i = 1:size(h_end)[1]
-        p = histogram(h_end[i, :], bins=bins, title=controller_names[i], alpha=0.9)
+        p = histogram(h_end[i, :], bins=bins, title=controller_names[i], alpha=0.9, label="")
         push!(plots, p)
         max_ylim = max(max_ylim, ylims(p)[2])
     end
