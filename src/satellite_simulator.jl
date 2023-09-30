@@ -66,6 +66,25 @@ function OrbitDynamicsParameters(
     )
 end
 
+function toDict(m::OrbitDynamicsParameters)
+    return Dict(
+        "satellite_model" => toDict(m.satellite_model),
+        "distance_scale" => m.distance_scale,
+        "time_scale" => m.time_scale,
+        "control_scale" => m.control_scale,
+        "angular_rate_scale" => m.angular_rate_scale,
+        "n_gravity" => m.n_gravity,
+        "m_gravity" => m.m_gravity,
+        "start_epoch" => m.start_epoch,
+        "control_type" => m.control_type,
+        "magnetic_model" => m.magnetic_model,
+        "add_solar_radiation_pressure" => m.add_solar_radiation_pressure,
+        "add_sun_thirdbody" => m.add_sun_thirdbody,
+        "add_moon_thirdbody" => m.add_moon_thirdbody,
+        "add_gravity_gradient_torque" => m.add_gravity_gradient_torque,
+    )
+end
+
 """ cartesian_acceleration_torque(x::Array{<:Real}, params::OrbitSimulationParameters, epc::Epoch)
 Compute the accelerations and torque experienced by a satellite
 """
@@ -664,6 +683,73 @@ function simulate_satellite_orbit_attitude_rk4(x0::Array{<:Real}, params::OrbitD
     return xhist, uhist, thist
 end
 
+function monte_carlo_orbit_attitude(get_initial_state, controllers::Dict, Ntrials, params::OrbitDynamicsParameters, tspan::Tuple{<:Real,<:Real}; integrator_dt=0.1, controller_dt=1.0)
+    Ntimesteps = Int(ceil((tspan[2] - tspan[1]) / integrator_dt))
+    mc_data = Dict(
+        key => Dict(
+            "X" => zeros(Ntrials, 13, Ntimesteps),
+            "U" => zeros(Ntrials, 3, Ntimesteps),
+            "T" => zeros(Ntrials, 1, Ntimesteps))
+        for (key, _) in controllers)
+
+    if Threads.nthreads() < length(Sys.cpu_info())
+        @warn "Use more threads! start Julia with --threads $(length(Sys.cpu_info())) to max out your CPU"
+    end
+
+    Threads.@threads for mc_step = 1:Ntrials
+        x0 = get_initial_state()
+        print("Thread $(Threads.threadid()), Trial $mc_step: x0 = $x0\n")
+        for (controller_name, controller) in controllers
+            xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=integrator_dt, controller=controller, controller_dt=controller_dt)
+            mc_data[controller_name]["X"][mc_step, :, :] .= xhist
+            mc_data[controller_name]["U"][mc_step, :, :] .= uhist
+            mc_data[controller_name]["T"][mc_step, 1, :] .= thist
+        end
+    end
+
+    return mc_data
+end
+
+function randbetween(min, max)
+    return (max - min) * rand() + min
+end
+
+function mc_initial_orbital_elements(h_range, e_range, i_range, Ω_range, ω_range, M_range)
+    return [
+        randbetween(h_range[1], h_range[2]) + SatelliteDynamics.R_EARTH,
+        randbetween(e_range[1], e_range[2]),
+        randbetween(i_range[1], i_range[2]),
+        randbetween(Ω_range[1], Ω_range[2]),
+        randbetween(ω_range[1], ω_range[2]),
+        randbetween(M_range[1], M_range[2])
+    ]
+end
+
+function mc_initial_attitude()
+    ϕ = rand(3)
+    ϕ = ϕ / norm(ϕ)
+    θ = randbetween(0, 2 * pi)
+    r = θ * ϕ
+    return axis_angle_to_quaternion(r)
+end
+
+function mc_initial_angular_velocity(ω_magnitude_range)
+    ω_magnitude = randbetween(ω_magnitude_range[1], ω_magnitude_range[2])
+    ω_direction = rand(3)
+    ω_direction = ω_direction / norm(ω_direction)
+    return ω_magnitude * ω_direction
+end
+
+function mc_setup_get_initial_state(h_range, e_range, i_range, Ω_range, ω_range, M_range, angular_rate_magnitude_range)
+    function get_initial_state()
+        x0_osc = mc_initial_orbital_elements(h_range, e_range, i_range, Ω_range, ω_range, M_range)
+        q0 = mc_initial_attitude()
+        ω0 = mc_initial_angular_velocity(angular_rate_magnitude_range)
+        return state_from_osc(x0_osc, q0, ω0)
+    end
+    return get_initial_state
+end
+
 function propagate_orbit(x0, dt, Nt)
 
     orbit = [zeros(eltype(x0), length(x0)) for _ = 1:Nt+1]
@@ -675,9 +761,9 @@ function propagate_orbit(x0, dt, Nt)
     return orbit
 end
 
-function get_downsample(Nsamples, max_samples)
-    sample_steps = Int(ceil(Nsamples / max_samples))
-    downsample = [i % sample_steps == 0 for i = 0:Nsamples-1]
+function get_downsample(Ntrials, max_samples)
+    sample_steps = Int(ceil(Ntrials / max_samples))
+    downsample = [i % sample_steps == 0 for i = 0:Ntrials-1]
     downsample[end] = 1
     return downsample
 end

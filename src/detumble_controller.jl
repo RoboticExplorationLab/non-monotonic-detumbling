@@ -1,5 +1,7 @@
 import SatelliteDynamics
 using Interpolations
+import Convex, SCS #COSMO
+
 
 include("satellite_simulator.jl")
 
@@ -230,9 +232,7 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
     return blookahead_control
 end
 
-function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60)
-    global B_derivative_inertial_hist
-
+function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10)
     v = x[4:6]
     q = x[7:10]
     B1 = magnetic_B_vector_body(x, t, params)
@@ -255,6 +255,66 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
     return m
 end
 
+function Bnormed(x, t, params)
+    B = magnetic_B_vector_body(x, t, params)
+    b = B / norm(B)
+    return b
+end
+
+function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, α=1e-4)
+
+    v = x[4:6]
+    q = x[7:10]
+    b = Bnormed(x, t, params)
+    dBdx = ForwardDiff.jacobian(x_ -> Bnormed(x_, t, params), x)
+    dBdr = dBdx[1:3, 1:3]
+    Bdot = dBdr * v
+    model = params.satellite_model
+    T = [I(3) tsolver * I(3)]
+
+    umin = -model.max_dipoles
+    umax = model.max_dipoles
+
+    B̂ = hat(b)
+    Ḃ̂ = hat(Bdot)
+
+    n = 3
+    u = Convex.Variable(3)
+    u̇ = Convex.Variable(3)
+
+    ϵ = 1
+
+    ω = x[11:13]
+    J = params.satellite_model.inertia
+    h = J * ω
+    h = h / norm(h)
+
+    objective = -h'B̂ * u + α * Convex.sumsquares(u̇) + α * Convex.sumsquares(u)
+    problem = Convex.minimize(objective)
+
+    problem.constraints += (Convex.quadform(u, B̂'B̂) - h' * (B̂ * u̇ + Ḃ̂ * u) ≤ ϵ)
+    problem.constraints += umin ≤ u
+    problem.constraints += u ≤ umax
+    problem.constraints += umin ≤ T * [u; u̇]
+    problem.constraints += T * [u; u̇] ≤ umax
+
+    Convex.solve!(problem, SCS.Optimizer; silent_solver=true)
+
+    if Int(problem.status) != 1
+        Convex.solve!(problem, SCS.Optimizer; silent_solver=false)
+        @infiltrate
+    end
+
+    m = Convex.evaluate(u)
+    ṁ = Convex.evaluate(u̇)
+
+    if saturate
+        model = params.satellite_model
+        m .= clamp.(m, -model.max_dipoles, model.max_dipoles)
+    end
+
+    return m
+end
 
 function plot_omega_cross_B(thist, xhist, params; max_samples=1000, title="")
     downsample = get_downsample(length(thist), max_samples)
