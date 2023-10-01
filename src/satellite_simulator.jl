@@ -75,7 +75,7 @@ function toDict(m::OrbitDynamicsParameters)
         "angular_rate_scale" => m.angular_rate_scale,
         "n_gravity" => m.n_gravity,
         "m_gravity" => m.m_gravity,
-        "start_epoch" => m.start_epoch,
+        "start_epoch" => SatelliteDynamics.caldate(m.start_epoch),
         "control_type" => m.control_type,
         "magnetic_model" => m.magnetic_model,
         "add_solar_radiation_pressure" => m.add_solar_radiation_pressure,
