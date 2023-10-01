@@ -308,6 +308,8 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
     m = Convex.evaluate(u)
     ṁ = Convex.evaluate(u̇)
 
+    m = tanh.(k * m)
+
     if saturate
         model = params.satellite_model
         m .= clamp.(m, -model.max_dipoles, model.max_dipoles)
@@ -315,8 +317,6 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
 
     return m
 end
-
-
 
 """
     From "A new variant of the B-dot control for spacecraft magnetic detumbling"
