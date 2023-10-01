@@ -78,11 +78,11 @@ function mc_plot_momentum_magnitude_final_histogram(mc_results, params; max_samp
         legend=false)
 end
 
-datafilename = "mc_orbit_varied.jld2"
+datafilename = "mc_orbit_varied_all.jld2"
 datapath = joinpath(@__DIR__, "..", "data", datafilename)
 data = load(datapath)
 mc_results = data["mc_results"]
 params = data["params"]
 
 display(mc_plot_momentum_magnitude_vs_time(mc_results, params; title="Momentum Magnitude"))
-display(mc_plot_momentum_magnitude_final_histogram(mc_results, params; title="Momentum Magnitude"))
+display(mc_plot_momentum_magnitude_final_histogram(mc_results, params; title="Final Momentum Magnitude"))

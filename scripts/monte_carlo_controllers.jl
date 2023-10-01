@@ -34,19 +34,19 @@ get_initial_state = mc_setup_get_initial_state(
 controllers = Dict(
     "B-Cross" => (x_, t_, p_) -> bcross_control(x_, t_, p_; k=4e-6, saturate=true),
     "Lyapunov Momentum" => (x_, t_, p_) -> bmomentum_control(x_, t_, p_; k=2e3, saturate=true),
-    "B-Dot Variant" => (x_, t_, p_) -> bdot_variant_controller(x_, t_, p_; k=4e-6, saturate=true),
+    "B-Dot Variant" => (x_, t_, p_) -> bdot_variant_autodiff(x_, t_, p_; k=4e-6, saturate=true),
     "Projection-based" => (x, t, m) -> projection_control(x, t, m; k1=10.0, k2=10.0, saturate=true),
     "Discrete Non-monotonic" => (x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=100),
-    "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; saturate=true),
+    "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; k=1e2, saturate=true),
 )
 
-Ntrials = 10
+Ntrials = 100
 
 
-mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=10.0, controller_dt=0.0)
+mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=0.1, controller_dt=0.0)
 
 
-datafilename = "mc_orbit_varied_test.jld2"
+datafilename = "mc_orbit_varied_all.jld2"
 datapath = joinpath(@__DIR__, "..", "data", datafilename)
 print("Saving data to $datapath")
 save(datapath, Dict("mc_results" => mc_results, "params" => toDict(params)))
