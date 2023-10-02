@@ -337,12 +337,9 @@ function make_bdot_variant(time_step)
     end
 
     function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
-
-        v = x[4:6]
-
         B = magnetic_B_vector_body(x, t, params)
         B̂ = normalized_magnetic_B_vector_body(x, t, params)
-        B̂dot = update_bdot_estimate(buffer, B, time_step)
+        B̂dot = update_bdot_estimate(buffer, B̂, time_step)
 
         ε = 1e-2
         Σ = Diagonal([ε, ε, ε]) + hat(B̂)
