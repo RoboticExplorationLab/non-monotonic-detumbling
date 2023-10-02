@@ -49,6 +49,21 @@ function bcross_gain(x_osc_0, params)
     k_bcross = 2 * Ω * (1 + sin(ξ_m)) * Jmin # equation 30
 end
 
+function bdot_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1e0, saturate=true)
+
+    B = magnetic_B_vector_body(x, t, params)
+    Bdot = magnetic_B_vector_body_dot(x, t, params)
+
+    m = -k * Bdot / norm(B)
+
+    if saturate
+        model = params.satellite_model
+        m .= clamp.(m, -model.max_dipoles, model.max_dipoles)
+    end
+
+    return m
+end
+
 Bmeasured = NaN * ones(3)
 ticks_since = 0
 function magnetic_control_sensed(controller, x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; sensor_ticks=5)
@@ -236,9 +251,7 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
     v = x[4:6]
     q = x[7:10]
     B1 = magnetic_B_vector_body(x, t, params)
-    dBdx = ForwardDiff.jacobian(x_ -> magnetic_B_vector_body(x_, t, params), x)
-    dBdr = dBdx[1:3, 1:3]
-    B1dot = dBdr * v
+    B1dot = magnetic_B_vector_body_dot(x, t, params)
 
     B2 = B1 + tderivative * B1dot
 
@@ -261,21 +274,21 @@ function normalized_magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::O
     return B / Bnorm
 end
 
-function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, α=1e-4)
+function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, hmax=0.004)
 
     v = x[4:6]
     q = x[7:10]
-    b = normalized_magnetic_B_vector_body(x, t, params)
-    dBdx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
-    dBdr = dBdx[1:3, 1:3]
-    Bdot = dBdr * v
+    B = magnetic_B_vector_body(x, t, params)
+    b = B / norm(B)
+    Bdot = magnetic_B_vector_body_dot(x, t, params)
     model = params.satellite_model
     T = [I(3) tsolver * I(3)]
 
     umin = -model.max_dipoles
     umax = model.max_dipoles
 
-    B̂ = hat(b)
+    b̂ = hat(b)
+    B̂ = hat(B)
     Ḃ̂ = hat(Bdot)
 
     n = 3
@@ -287,11 +300,13 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
     ω = x[11:13]
     J = params.satellite_model.inertia
     h = J * ω
-    h = h / norm(h)
+    h̄ = h / hmax
 
-    objective = -h'B̂ * u + α * Convex.sumsquares(u̇) + α * Convex.sumsquares(u)
+    # objective is normalized so the first term and regularization become equal when ||h|| = hmax/k 
+    objective = -k * h̄'b̂ * u + Convex.sumsquares(u̇) + Convex.sumsquares(u)
     problem = Convex.minimize(objective)
 
+    # V̈ constraint is in real units to reflect dynamics
     problem.constraints += (Convex.quadform(u, B̂'B̂) - h' * (B̂ * u̇ + Ḃ̂ * u) ≤ ϵ)
     problem.constraints += umin ≤ u
     problem.constraints += u ≤ umax
@@ -307,8 +322,6 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
 
     m = Convex.evaluate(u)
     ṁ = Convex.evaluate(u̇)
-
-    m = m .* tanh(k * norm(h))
 
     if saturate
         model = params.satellite_model
@@ -337,21 +350,23 @@ function make_bdot_variant(time_step)
     end
 
     function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
-        B = magnetic_B_vector_body(x, t, params)
-        B̂ = normalized_magnetic_B_vector_body(x, t, params)
-        B̂dot = update_bdot_estimate(buffer, B̂, time_step)
+        B_body = magnetic_B_vector_body(x, t, params)
+        Bdot_body = update_bdot_estimate(buffer, B_body, time_step)
 
-        return bdot_variant_core(k, B, B̂, B̂dot, saturate)
+        return bdot_variant_core(k, B_body, Bdot_body, saturate, params, x[11:13])
     end
 
     return bdot_variant
 end
 
-function bdot_variant_core(k, B, B̂, B̂dot, saturate)
-    ε = 1e-4
-    Σ = Diagonal([ε, ε, ε]) + hat(B̂)
+function bdot_variant_core(k, B, Bdot, saturate, params, ω)
+    ε = 3e-3
+    Σ = Diagonal([ε, ε, ε]) + hat(B)
 
-    M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
+    ω_est = inv(Σ) * Bdot
+    b = B / norm(B)
+    # M = -(k / norm(B)) * hat(b) * inv(Σ) * Bdot
+    M = -(k / norm(B)) * hat(b) * ω
     if saturate
         model = params.satellite_model
         M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
@@ -362,16 +377,12 @@ end
 
 function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
 
-    v = x[4:6]
-
     B = magnetic_B_vector_body(x, t, params)
-    B̂ = normalized_magnetic_B_vector_body(x, t, params)
-    dB̂dx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
-    dB̂dr = dB̂dx[1:3, 1:3]
-    B̂dot = dB̂dr * v
+    Bdot = magnetic_B_vector_body_dot(x, t, params)
 
-    return bdot_variant_core(k, B, B̂, B̂dot, saturate)
+    return bdot_variant_core(k, B, Bdot, saturate, params, x[11:13])
 end
+
 
 function plot_omega_cross_B(thist, xhist, params; max_samples=1000, title="")
     downsample = get_downsample(length(thist), max_samples)
