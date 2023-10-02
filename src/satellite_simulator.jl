@@ -332,6 +332,25 @@ function magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::OrbitDynamic
     return B_body
 end
 
+function magnetic_B_vector_body_dot(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
+    r = x[1:3]
+    v = x[4:6]
+    B_eci = magnetic_B_vector(r, t, params)
+    dB_eci_dr = ForwardDiff.jacobian(r_ -> magnetic_B_vector(r_, t, params), r)
+    B_eci_dot = dB_eci_dr * v
+
+    q = x[7:10]
+    Q_body_eci = Q(q)' # transforms eci vectors to body
+
+    B_body = Q_body_eci * B_eci
+
+    ω_body = x[11:13] # Body frame angular rate
+
+    B_dot_body = Q_body_eci * B_eci_dot + hat(B_body) * ω_body
+
+    return B_dot_body
+end
+
 function magnetic_B_vector(r::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
     epc = sim_time_to_epoch(params, t)
     return magnetic_B_vector(r, epc, params)
