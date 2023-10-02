@@ -341,20 +341,23 @@ function make_bdot_variant(time_step)
         B̂ = normalized_magnetic_B_vector_body(x, t, params)
         B̂dot = update_bdot_estimate(buffer, B̂, time_step)
 
-        ε = 1e-2
-        Σ = Diagonal([ε, ε, ε]) + hat(B̂)
-
-        M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
-
-        if saturate
-            model = params.satellite_model
-            M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
-        end
-
-        return M
+        return bdot_variant_core(k, B, B̂, B̂dot, saturate)
     end
 
     return bdot_variant
+end
+
+function bdot_variant_core(k, B, B̂, B̂dot, saturate)
+    ε = 1e-4
+    Σ = Diagonal([ε, ε, ε]) + hat(B̂)
+
+    M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
+    if saturate
+        model = params.satellite_model
+        M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
+    end
+
+    return M
 end
 
 function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
@@ -367,17 +370,7 @@ function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamics
     dB̂dr = dB̂dx[1:3, 1:3]
     B̂dot = dB̂dr * v
 
-    ε = 1e-2
-    Σ = Diagonal([ε, ε, ε]) + hat(B̂)
-
-    M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
-
-    if saturate
-        model = params.satellite_model
-        M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
-    end
-
-    return M
+    return bdot_variant_core(k, B, B̂, B̂dot, saturate)
 end
 
 function plot_omega_cross_B(thist, xhist, params; max_samples=1000, title="")
