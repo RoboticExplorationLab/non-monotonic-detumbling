@@ -44,7 +44,11 @@ controllers = Dict(
     ),
     "B-Dot Variant" => Dict(
         "controller" => (x_, t_, p_, k_) -> bdot_variant_autodiff(x_, t_, p_; k=k_, saturate=true),
-        "gains" => 4e-6 * (10.0 .^ sweep_range)
+        "gains" => 0.4 * (10.0 .^ sweep_range)
+    ),
+    "B-Dot" => Dict(
+        "controller" => (x_, t_, p_) -> bdot_control(x_, t_, p_; k=k_, saturate=true),
+        "gains" => 1.0 * (10.0 .^ sweep_range)
     ),
     "Projection-based" => Dict(
         "controller" => (x, t, m, k_) -> projection_control(x, t, m; k1=k_, k2=10.0, saturate=true),
