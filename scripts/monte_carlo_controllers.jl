@@ -1,6 +1,6 @@
 using Pkg
-using JLD2
 Pkg.activate(joinpath(@__DIR__, ".."))
+using JLD2
 using Random
 Random.seed!(0)
 
