@@ -132,7 +132,7 @@ function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPar
     Bnorm = norm(B)
     Jω = J * ω
     k = k1 * exp.(-k2 * norm((B') / Bnorm * (Jω / (norm(Jω) + ϵ))))
-    m = -(k / (Bnorm^2)) * hat(B)' * Jω
+    m = (k / (Bnorm^2)) * hat(B)' * Jω
     if saturate
         model = params.satellite_model
         m .= clamp.(m, -model.max_dipoles, model.max_dipoles)
@@ -342,12 +342,13 @@ function make_bdot_variant(time_step)
 
         B = magnetic_B_vector_body(x, t, params)
         B̂ = normalized_magnetic_B_vector_body(x, t, params)
-        B̂dot = update_bdot_estimate(buffer, B̂, time_step)
+        Bdot = update_bdot_estimate(buffer, B, time_step)
+        B̂dot = Bdot / norm(B)
 
         ε = 1e-2
         Σ = Diagonal([ε, ε, ε]) + hat(B̂)
 
-        M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
+        M = -(k / norm(B)) * cross(B̂, inv(Σ) * normalize(B̂dot))
 
         if saturate
             model = params.satellite_model
@@ -366,14 +367,15 @@ function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamics
 
     B = magnetic_B_vector_body(x, t, params)
     B̂ = normalized_magnetic_B_vector_body(x, t, params)
-    dB̂dx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
-    dB̂dr = dB̂dx[1:3, 1:3]
-    B̂dot = dB̂dr * v
+    dBdx = ForwardDiff.jacobian(x_ -> normalized_magnetic_B_vector_body(x_, t, params), x)
+    dBdr = dBdx[1:3, 1:3]
+    Bdot = dBdr * v
+    B̂dot = Bdot / norm(B)
 
     ε = 1e-2
     Σ = Diagonal([ε, ε, ε]) + hat(B̂)
 
-    M = -(k / norm(B)) * cross(B̂, inv(Σ) * B̂dot)
+    M = -(k / norm(B)) * cross(B̂, inv(Σ) * normalize(B̂dot))
 
     if saturate
         model = params.satellite_model
