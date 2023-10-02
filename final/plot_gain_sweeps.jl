@@ -5,7 +5,8 @@ using LinearAlgebra
 using JLD2
 using Plots
 
-plotly()
+# plotly()
+pyplot()
 
 function gs_plot_momentum_magnitude_vs_time(gs_results, params; max_samples=500, title="")
     Ncontrollers = length(keys(gs_results))
@@ -40,7 +41,7 @@ function gs_plot_momentum_magnitude_vs_time(gs_results, params; max_samples=500,
         ylims=(0, max_ylim),
         ylabel="Momentum (Nms)",
         linewidth=1.5,
-        legend=false)
+        legend=true)
 end
 
 datafilename = "gain_sweep_all.jld2"
