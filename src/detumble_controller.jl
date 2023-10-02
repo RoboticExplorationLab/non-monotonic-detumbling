@@ -353,20 +353,19 @@ function make_bdot_variant(time_step)
         B_body = magnetic_B_vector_body(x, t, params)
         Bdot_body = update_bdot_estimate(buffer, B_body, time_step)
 
-        return bdot_variant_core(k, B_body, Bdot_body, saturate, params, x[11:13])
+        return bdot_variant_core(k, B_body, Bdot_body, saturate, params)
     end
 
     return bdot_variant
 end
 
-function bdot_variant_core(k, B, Bdot, saturate, params, ω)
-    ε = 3e-3
+function bdot_variant_core(k, B, Bdot, saturate, params)
+    ε = 1e-6
     Σ = Diagonal([ε, ε, ε]) + hat(B)
 
     ω_est = inv(Σ) * Bdot
     b = B / norm(B)
-    # M = -(k / norm(B)) * hat(b) * inv(Σ) * Bdot
-    M = -(k / norm(B)) * hat(b) * ω
+    M = -(k / norm(B)) * hat(B) * ω_est
     if saturate
         model = params.satellite_model
         M .= clamp.(M, -model.max_dipoles, model.max_dipoles)
@@ -380,7 +379,7 @@ function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamics
     B = magnetic_B_vector_body(x, t, params)
     Bdot = magnetic_B_vector_body_dot(x, t, params)
 
-    return bdot_variant_core(k, B, Bdot, saturate, params, x[11:13])
+    return bdot_variant_core(k, B, Bdot, saturate, params)
 end
 
 
