@@ -15,9 +15,9 @@ params = OrbitDynamicsParameters(py4_model_diagonal;
     control_scale=1,
     control_type=:dipole,
     magnetic_model=:IGRF13,
-    add_solar_radiation_pressure=true,
-    add_sun_thirdbody=true,
-    add_moon_thirdbody=true)
+    add_solar_radiation_pressure=false,
+    add_sun_thirdbody=false,
+    add_moon_thirdbody=false)
 
 tspan = (0.0, 2 * 60 * 60.0)
 
