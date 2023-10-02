@@ -308,7 +308,7 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
     m = Convex.evaluate(u)
     ṁ = Convex.evaluate(u̇)
 
-    m = tanh.(k * m)
+    m = m .* tanh(k * norm(h))
 
     if saturate
         model = params.satellite_model
