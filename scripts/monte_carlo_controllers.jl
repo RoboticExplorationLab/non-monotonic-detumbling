@@ -1,6 +1,6 @@
 using Pkg
-using JLD2
 Pkg.activate(joinpath(@__DIR__, ".."))
+using JLD2
 using Random
 Random.seed!(0)
 
@@ -34,7 +34,7 @@ get_initial_state = mc_setup_get_initial_state(
 controllers = Dict(
     "B-Cross" => (x_, t_, p_) -> bcross_control(x_, t_, p_; k=4e-6, saturate=true),
     "Lyapunov Momentum" => (x_, t_, p_) -> bmomentum_control(x_, t_, p_; k=2e3, saturate=true),
-    "B-Dot Variant" => (x_, t_, p_) -> bdot_variant_controller(x_, t_, p_; k=4e-6, saturate=true),
+    "B-Dot Variant" => (x_, t_, p_) -> bdot_variant_autodiff(x_, t_, p_; k=4e-6, saturate=true),
     "Projection-based" => (x, t, m) -> projection_control(x, t, m; k1=10.0, k2=10.0, saturate=true),
     "Discrete Non-monotonic" => (x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=100),
     "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; saturate=true),
