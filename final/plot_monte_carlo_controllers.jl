@@ -107,7 +107,6 @@ function mc_plot_detumble_time_histogram(mc_results, params; title="", terminal_
     t_done /= (60 * 60) # convert to hours
     t_done_max = maximum(t_done)
     bins = range(start=0.0, stop=t_done_max + (t_done_max / Ntrials), step=t_done_max / Ntrials)
-    @infiltrate
     plots = []
     max_ylim = 0.0
     for i = 1:size(t_done)[1]
