@@ -248,19 +248,13 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
 end
 
 function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10)
-    r = x[1:3]
-    v = x[4:6]
-    B_eci = magnetic_B_vector(r, t, params)
-    dB_eci_dr = ForwardDiff.jacobian(r_ -> magnetic_B_vector(r_, t, params), r)
-    B_eci_dot = dB_eci_dr * v
+    B1_body = magnetic_B_vector_body(x, t, params) # magnetometer measurement
+    B1_dot_body_wrt_inertial_in_body = magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
 
-    q = x[7:10]
-    Q_body_eci = Q(q)' # transforms eci vectors to body
+    ω_body_wrt_inertial_in_body = x[11:13] # gyro measurement
 
-    B1_body = Q_body_eci * B_eci
-    B1_dot_wrt_eci_in_body = Q_body_eci * B_eci_dot
-
-    B2_body = B1_body + tderivative * B1_dot_wrt_eci_in_body
+    B1_dot_orbit_wrt_inertial_in_body = B1_dot_body_wrt_inertial_in_body - hat(B1_body) * ω_body_wrt_inertial_in_body
+    B2_body = B1_body + tderivative * B1_dot_orbit_wrt_inertial_in_body
 
     ω = x[11:13]
     J = params.satellite_model.inertia
