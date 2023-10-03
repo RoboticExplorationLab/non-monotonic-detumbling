@@ -47,11 +47,11 @@ controllers = Dict(
         "gains" => 0.4 * (10.0 .^ sweep_range)
     ),
     "B-Dot" => Dict(
-        "controller" => (x_, t_, p_) -> bdot_control(x_, t_, p_; k=k_, saturate=true),
+        "controller" => (x_, t_, p_, k_) -> bdot_control(x_, t_, p_; k=k_, saturate=true),
         "gains" => 1.0 * (10.0 .^ sweep_range)
     ),
     "Projection-based" => Dict(
-        "controller" => (x, t, m, k_) -> projection_control(x, t, m; k1=k_, k2=10.0, saturate=true),
+        "controller" => (x_, t_, p_, k_) -> projection_control(x_, t_, m_; k1=k_, k2=10.0, saturate=true),
         "gains" => 10.0 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
