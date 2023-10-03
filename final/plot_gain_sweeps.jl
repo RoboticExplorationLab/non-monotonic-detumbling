@@ -5,6 +5,8 @@ using LinearAlgebra
 using JLD2
 using Plots
 
+include("../src/satellite_simulator.jl")
+
 # plotly()
 pyplot()
 
