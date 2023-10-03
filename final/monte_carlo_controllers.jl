@@ -45,7 +45,7 @@ controllers = Dict(
     "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; k=1e2, saturate=true),
 )
 
-Ntrials = 10
+Ntrials = 100
 
 
 mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=integrator_dt, controller_dt=controller_dt)
