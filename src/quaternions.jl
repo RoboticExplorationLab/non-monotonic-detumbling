@@ -92,7 +92,9 @@ end
 
 function axis_angle_to_quaternion(r)
     θ = norm(r)
-    return [cos(θ / 2); r * sinc(θ / (2 * pi)) * pi / 2] # sinc(θ/(2π)) = sin(πθ/2π) / πθ/2 = 2 sin(θ/2)/ πθ
+    # sinc(θ/(2π)) = sin(π(θ/2π)) / π(θ/2π) = sin(θ/2) / (θ/2) = 2 sin(θ/2) / θ ⟹ sinc(θ/(2π))/2 = sin(θ/2) / θ
+    q = [cos(θ / 2); r * sinc(θ / (2 * pi)) / 2]
+    return q
 end
 
 """ normalize(v)
