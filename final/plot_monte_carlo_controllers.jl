@@ -5,6 +5,8 @@ using LinearAlgebra
 using JLD2
 using Plots
 
+include("../src/satellite_simulator.jl")
+
 plotly()
 
 function mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500, title="")
@@ -44,11 +46,11 @@ end
 function mc_plot_momentum_magnitude_final_histogram(mc_results, params; max_samples=500, title="")
     Ncontrollers = length(keys(mc_results))
     J = params["satellite_model"]["inertia"]
+    Ntrials = size(mc_results[collect(keys(mc_results))[1]]["T"])[1]
     h_end = zeros(Ncontrollers, Ntrials)
     controller_idx = 1
     controller_names = collect(keys(mc_results))
     for controller_name in controller_names
-        Ntrials = size(mc_results[controller_name]["T"])[1]
         for mc_step = 1:Ntrials
             xend = mc_results[controller_name]["X"][mc_step, :, end]
 
@@ -59,7 +61,7 @@ function mc_plot_momentum_magnitude_final_histogram(mc_results, params; max_samp
         controller_idx += 1
     end
     h_max = maximum(h_end)
-    bins = range(0, h_max, 100)
+    bins = range(0, h_max, Ntrials)
     plots = []
     max_ylim = 0.0
     for i = 1:size(h_end)[1]
