@@ -55,7 +55,7 @@ controllers = Dict(
         "gains" => 10.0 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=100),
+        "controller" => (x_, t_, p_, k_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0),
         "gains" => 3e2 * (10.0 .^ sweep_range)
     ),
     "Barbalat's Constrained" => Dict(

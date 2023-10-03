@@ -41,7 +41,7 @@ controllers = Dict(
     "B-Dot Variant" => (x_, t_, p_) -> bdot_variant_autodiff(x_, t_, p_; k=0.4, saturate=true),
     "B-Dot" => (x_, t_, p_) -> bdot_control(x_, t_, p_; k=1.0, saturate=true),
     "Projection-based" => (x, t, m) -> projection_control(x, t, m; k1=10.0, k2=10.0, saturate=true),
-    "Discrete Non-monotonic" => (x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=100),
+    "Discrete Non-monotonic" => (x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=1.0, tderivative=10 * 60),
     "Barbalat's Constrained" => (x_, t_, p_) -> bbarbalat_minVd(x_, t_, p_; k=1e2, saturate=true),
 )
 
