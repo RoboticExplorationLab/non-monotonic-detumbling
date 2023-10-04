@@ -35,32 +35,28 @@ sweep_range = -4:1:5 #[-1.0, 0.0, 1.0]
 
 controllers = Dict(
     "B-Cross" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bcross_control(x_, t_, p_; k=k_, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> bcross_control(x_, t_, p_; k=k_, saturate=true),
         "gains" => 4e-6 * (10.0 .^ sweep_range)
     ),
     "Lyapunov Momentum" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bmomentum_control(x_, t_, p_; k=k_, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> bmomentum_control(x_, t_, p_; k=k_, saturate=true),
         "gains" => 2e3 * (10.0 .^ sweep_range)
     ),
     "B-Dot Variant" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bdot_variant_autodiff(x_, t_, p_; k=k_, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> bdot_variant(x_, t_, p_; k=k_, saturate=true, Bhist=B_, time_step=integrator_dt),
         "gains" => 0.4 * (10.0 .^ sweep_range)
     ),
     "B-Dot" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bdot_control(x_, t_, p_; k=k_, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> bdot_control(x_, t_, p_; k=k_, saturate=true, Bhist=B_, time_step=integrator_dt),
         "gains" => 1.0 * (10.0 .^ sweep_range)
     ),
     "Projection-based" => Dict(
-        "controller" => (x_, t_, p_, k_) -> projection_control(x_, t_, p_; k1=k_, k2=10.0, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> projection_control(x_, t_, p_; k1=k_, k2=10.0, saturate=true),
         "gains" => 10.0 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0),
+        "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0, Bhist=B_, time_step=integrator_dt),
         "gains" => 3e2 * (10.0 .^ sweep_range)
-    ),
-    "Barbalat's Constrained" => Dict(
-        "controller" => (x_, t_, p_, k_) -> bbarbalat_minVd(x_, t_, p_; k=k_, saturate=true),
-        "gains" => 1e2 * (10.0 .^ sweep_range)
     ),
 )
 
@@ -83,8 +79,9 @@ Threads.@threads for i = eachindex(controller_names)
     controller = controllers[controller_name]["controller"]
     for gain_idx = eachindex(gains)
         gain = gains[gain_idx]
-        simulate_satellite_orbit_attitude_rk4
-        xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=integrator_dt, controller=(x_, t_, p_) -> controller(x_, t_, p_, gain), controller_dt=controller_dt)
+        Bhist = [zeros(3) for i = 1:4]
+        controller_kB(x_, t_, p_) = controller(x_, t_, p_, gain, Bhist)
+        xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=integrator_dt, controller=controller_kB, controller_dt=controller_dt)
         gs_results[controller_name]["X"][gain_idx, :, :] .= xhist
         gs_results[controller_name]["U"][gain_idx, :, :] .= uhist
         gs_results[controller_name]["T"][gain_idx, 1, :] .= thist

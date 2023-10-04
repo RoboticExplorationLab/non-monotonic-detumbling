@@ -49,10 +49,11 @@ function bcross_gain(x_osc_0, params)
     k_bcross = 2 * Ω * (1 + sin(ξ_m)) * Jmin # equation 30
 end
 
-function bdot_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1e0, saturate=true)
+function bdot_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1e0, saturate=true, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
 
     B = measure_magnetic_B_vector_body(x, t, params)
-    Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
+    # Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
+    Bdot = update_bdot_estimate(Bhist, B, time_step)
 
     m = -k * Bdot / norm(B)
 
@@ -247,9 +248,10 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
     return blookahead_control
 end
 
-function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10)
+function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
     B1_body = measure_magnetic_B_vector_body(x, t, params) # magnetometer measurement
-    B1_dot_body_wrt_inertial_in_body = measure_magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
+    # B1_dot_body_wrt_inertial_in_body = measure_magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
+    B1_dot_body_wrt_inertial_in_body = update_bdot_estimate(Bhist, B1_body, time_step)
 
     ω_body_wrt_inertial_in_body = measure_angular_velocity(x, t, params) # gyro measurement
 
@@ -274,13 +276,14 @@ function normalized_magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::O
     return B / Bnorm
 end
 
-function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, hmax=0.004, ϵ=1)
+function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, hmax=0.004, ϵ=1, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
 
     v = x[4:6]
     q = x[7:10]
     B = measure_magnetic_B_vector_body(x, t, params)
     b = B / norm(B)
-    Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
+    # Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
+    Bdot = update_bdot_estimate(Bhist, B, time_step)
     model = params.satellite_model
     T = [I(3) tsolver * I(3)]
 
@@ -332,30 +335,27 @@ end
 """
     From "A new variant of the B-dot control for spacecraft magnetic detumbling"
 """
-function make_bdot_variant(time_step)
 
-    buffer = [zeros(3), zeros(3), zeros(3), zeros(3)]
+function update_bdot_estimate(buffer, B, dt)
+    # Use five point stencil to estimate Bdot
 
-    function update_bdot_estimate(buffer, B, dt)
-        # Use five point stencil to estimate Bdot
+    Bdot = (3 * buffer[4] - 16 * buffer[3] + 36 * buffer[2] - 48 * buffer[1] + 25 * B) / (12 * dt)
 
-        Bdot = (3 * buffer[4] - 16 * buffer[3] + 36 * buffer[2] - 48 * buffer[1] + 25 * B) / (12 * dt)
+    buffer[4][:] .= buffer[3][:]
+    buffer[3][:] .= buffer[2][:]
+    buffer[2][:] .= buffer[1][:]
+    buffer[1][:] .= B[:]
 
-        buffer[2:4] = buffer[1:3]
-        buffer[1] = B
-
-        return Bdot
-    end
-
-    function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
-        B_body = measure_magnetic_B_vector_body(x, t, params)
-        Bdot_body = update_bdot_estimate(buffer, B_body, time_step)
-
-        return bdot_variant_core(k, B_body, Bdot_body, saturate, params)
-    end
-
-    return bdot_variant
+    return Bdot
 end
+
+function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
+    B_body = measure_magnetic_B_vector_body(x, t, params)
+    Bdot_body = update_bdot_estimate(Bhist, B_body, time_step)
+
+    return bdot_variant_core(k, B_body, Bdot_body, saturate, params)
+end
+
 
 function bdot_variant_core(k, B, Bdot, saturate, params)
     ε = 1e-6

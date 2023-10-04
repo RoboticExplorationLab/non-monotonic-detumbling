@@ -755,7 +755,9 @@ function monte_carlo_orbit_attitude(get_initial_state, controllers::Dict, Ntrial
         pnew = get_mc_params(params)
         print("Thread $(Threads.threadid()), Trial $mc_step: x0 = $x0\n")
         for (controller_name, controller) in controllers
-            xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, pnew, tspan; integrator_dt=integrator_dt, controller=controller, controller_dt=controller_dt)
+            Bhist = [zeros(3) for i = 1:4]
+            controller_B(x_, t_, p_) = controller(x_, t_, p_, Bhist)
+            xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, pnew, tspan; integrator_dt=integrator_dt, controller=controller_B, controller_dt=controller_dt)
             mc_data[controller_name]["X"][mc_step, :, :] .= xhist
             mc_data[controller_name]["U"][mc_step, :, :] .= uhist
             mc_data[controller_name]["T"][mc_step, 1, :] .= thist
