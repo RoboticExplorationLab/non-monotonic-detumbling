@@ -12,7 +12,7 @@ include("../src/satellite_simulator.jl")
 SAVEAS_PDF = true
 lineopts = @pgf {no_marks, "very thick", style = "solid"}
 
-function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500)
+function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500, file_suffix="")
     Ncontrollers = length(keys(mc_results))
     color_list = distinguishable_colors(Ncontrollers, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
     plots = []
@@ -73,13 +73,13 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_vs_time.pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_vs_time" * file_suffix * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_vs_time.tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_vs_time" * file_suffix * ".tikz"), gp, include_preamble=false)
     end
 end
 
-function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params)
+function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file_suffix="")
     Ncontrollers = length(keys(mc_results))
     J = params["satellite_model"]["inertia"]
     Ntrials = size(mc_results[collect(keys(mc_results))[1]]["T"])[1]
@@ -129,13 +129,13 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params)
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_final_histogram.pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_final_histogram" * file_suffix * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_final_histogram.tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_final_histogram" * file_suffix * ".tikz"), gp, include_preamble=false)
     end
 end
 
-function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_threshold=0.01)
+function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_threshold=0.01, file_suffix="")
     Ncontrollers = length(keys(mc_results))
     J = params["satellite_model"]["inertia"]
     Ntrials = size(mc_results[collect(keys(mc_results))[1]]["T"])[1]
@@ -198,20 +198,30 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_histogram.pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_histogram" * file_suffix * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_histogram.tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_histogram" * file_suffix * ".tikz"), gp, include_preamble=false)
     end
 end
 
-datafilename = "mc_orbit_varied_all.jld2"
-datapath = joinpath(@__DIR__, "..", "data", datafilename)
-data = load(datapath)
-mc_results = data["mc_results"]
-params = data["params"]
+datafilename_no_noise = "mc_orbit_varied_no_noise.jld2"
+datapath_no_noise = joinpath(@__DIR__, "..", "data", datafilename_no_noise)
+data_no_noise = load(datapath_no_noise)
+mc_results_no_noise = data["mc_results"]
+params_no_noise = data["params"]
 
-display(pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params))
-display(pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params))
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix="_no_noise")
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix="_no_noise")
 h_thresh = 0.01
-display(pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_threshold=h_thresh))
+pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix="_no_noise")
 
+
+datafilename_noisy = "mc_orbit_varied_noisy.jld2"
+datapath_noisy = joinpath(@__DIR__, "..", "data", datafilename_noisy)
+data_noisy = load(datapath_noisy)
+mc_results_noisy = data["mc_results"]
+params_noisy = data["params"]
+
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_noisy, params_noisy; file_suffix="_noisy")
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_noisy, params_noisy; file_suffix="_noisy")
+pgf_mc_plot_detumble_time_histogram(mc_results_noisy, params_noisy; terminal_threshold=h_thresh, file_suffix="_noisy")
