@@ -30,7 +30,7 @@ get_initial_state = mc_setup_get_initial_state(
     (0, 2 * pi), #Ω_range
     (0, 2 * pi), #ω_range
     (0, 2 * pi), #M_range
-    (deg2rad(50), deg2rad(50)), # angular_rate_magnitude_range
+    (deg2rad(10), deg2rad(10)), # angular_rate_magnitude_range
 )
 
 controllers = Dict(
@@ -42,7 +42,7 @@ controllers = Dict(
     "Discrete Non-monotonic" => (x_, t_, p_, B_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=100.0, tderivative=10 * 60, Bhist=B_, time_step=integrator_dt),
 )
 
-Ntrials = 10
+Ntrials = 100
 
 
 mc_results = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params, tspan; integrator_dt=integrator_dt, controller_dt=controller_dt)
