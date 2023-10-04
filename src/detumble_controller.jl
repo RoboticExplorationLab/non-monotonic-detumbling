@@ -24,10 +24,10 @@ end
 Detumble controller
 See Markley and Crassidis eq 7.48, p 308
 """
-function bcross_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
+function bcross_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
     Bnorm = norm(B)
     b = B / Bnorm
-    ω = x[11:13]
+    ω = measure_angular_velocity(x, t, params)
     m = (k / Bnorm) * cross(ω, b)
 
     if saturate
@@ -51,8 +51,8 @@ end
 
 function bdot_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1e0, saturate=true)
 
-    B = magnetic_B_vector_body(x, t, params)
-    Bdot = magnetic_B_vector_body_dot(x, t, params)
+    B = measure_magnetic_B_vector_body(x, t, params)
+    Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
 
     m = -k * Bdot / norm(B)
 
@@ -76,7 +76,7 @@ function magnetic_control_sensed(controller, x::Vector{<:Real}, t::Real, params:
     end
 
     if ticks_since % sensor_ticks == 0
-        Bmeasured = magnetic_B_vector_body(x, t, params)
+        Bmeasured = measure_magnetic_B_vector_body(x, t, params)
         ticks_since += 1
         return zeros(3)
     else
@@ -85,10 +85,10 @@ function magnetic_control_sensed(controller, x::Vector{<:Real}, t::Real, params:
     end
 end
 
-function boptimal_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
+function boptimal_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
     Bnorm = norm(B)
     b = B / Bnorm
-    ω = x[11:13]
+    ω = measure_angular_velocity(x, t, params)
     c = -hat(ω) * b # = (b'hat(ω))'
     max_dipoles = params.satellite_model.max_dipoles
     m = -max_dipoles .* tanh.(k * c)
@@ -104,10 +104,10 @@ end
 """ boptimal_control_ball()
 Forces m to be within the ball m'm <= min(m_max)^2
 """
-function boptimal_control_ball(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
+function boptimal_control_ball(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
     Bnorm = norm(B)
     b = B / Bnorm
-    ω = x[11:13]
+    ω = measure_angular_velocity(x, t, params)
     c = -hat(ω) * b # = (b'hat(ω))'
     max_dipoles = params.satellite_model.max_dipoles
     mmax = minimum(max_dipoles)
@@ -124,10 +124,10 @@ function boptimal_control_ball(x::Vector{<:Real}, t::Real, params::OrbitDynamics
     return m
 end
 
-function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
+function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), k=1.0, saturate=true)
     Bnorm = norm(B)
     b = B / Bnorm
-    ω = x[11:13]
+    ω = measure_angular_velocity(x, t, params)
     h = params.satellite_model.inertia * ω
     c = -hat(h) * b
     max_dipoles = params.satellite_model.max_dipoles
@@ -141,8 +141,8 @@ function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPara
     return m
 end
 
-function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=magnetic_B_vector_body(x, t, params), ϵ=10e-4, k1=1.0, k2=1.0, saturate=true)
-    ω = x[11:13]
+function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), ϵ=10e-4, k1=1.0, k2=1.0, saturate=true)
+    ω = measure_angular_velocity(x, t, params)
     J = params.satellite_model.inertia
     Bnorm = norm(B)
     Jω = J * ω
@@ -225,13 +225,13 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
 
     function blookahead_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tlookahead=10 * 60, α=10)
         q = x[7:10]
-        B1 = magnetic_B_vector_body(x, t, params)
+        B1 = measure_magnetic_B_vector_body(x, t, params)
         B1_inertial = B_interp(t)
         B2_inertial = B_interp(t + tlookahead)
         B1_test = Q(q)'B1_inertial
         B2 = Q(q)'B2_inertial
 
-        ω = x[11:13]
+        ω = measure_angular_velocity(x, t, params)
         J = params.satellite_model.inertia
 
         m = blookahead_core(B1, B2, J, ω, k, α)
@@ -248,18 +248,17 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
 end
 
 function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10)
-    B1_body = magnetic_B_vector_body(x, t, params) # magnetometer measurement
-    B1_dot_body_wrt_inertial_in_body = magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
+    B1_body = measure_magnetic_B_vector_body(x, t, params) # magnetometer measurement
+    B1_dot_body_wrt_inertial_in_body = measure_magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
 
-    ω_body_wrt_inertial_in_body = x[11:13] # gyro measurement
+    ω_body_wrt_inertial_in_body = measure_angular_velocity(x, t, params) # gyro measurement
 
     B1_dot_orbit_wrt_inertial_in_body = B1_dot_body_wrt_inertial_in_body - hat(B1_body) * ω_body_wrt_inertial_in_body
     B2_body = B1_body + tderivative * B1_dot_orbit_wrt_inertial_in_body
 
-    ω = x[11:13]
     J = params.satellite_model.inertia
 
-    m = blookahead_core(B1_body, B2_body, J, ω, k, α)
+    m = blookahead_core(B1_body, B2_body, J, ω_body_wrt_inertial_in_body, k, α)
 
     if saturate
         model = params.satellite_model
@@ -270,18 +269,18 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
 end
 
 function normalized_magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
-    B = magnetic_B_vector_body(x, t, params)
+    B = measure_magnetic_B_vector_body(x, t, params)
     Bnorm = norm(B)
     return B / Bnorm
 end
 
-function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, hmax=0.004)
+function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tsolver=10, hmax=0.004, ϵ=1)
 
     v = x[4:6]
     q = x[7:10]
-    B = magnetic_B_vector_body(x, t, params)
+    B = measure_magnetic_B_vector_body(x, t, params)
     b = B / norm(B)
-    Bdot = magnetic_B_vector_body_dot(x, t, params)
+    Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
     model = params.satellite_model
     T = [I(3) tsolver * I(3)]
 
@@ -296,9 +295,7 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
     u = Convex.Variable(3)
     u̇ = Convex.Variable(3)
 
-    ϵ = 1
-
-    ω = x[11:13]
+    ω = measure_angular_velocity(x, t, params)
     J = params.satellite_model.inertia
     h = J * ω
     h̄ = h / hmax
@@ -351,7 +348,7 @@ function make_bdot_variant(time_step)
     end
 
     function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
-        B_body = magnetic_B_vector_body(x, t, params)
+        B_body = measure_magnetic_B_vector_body(x, t, params)
         Bdot_body = update_bdot_estimate(buffer, B_body, time_step)
 
         return bdot_variant_core(k, B_body, Bdot_body, saturate, params)
@@ -377,8 +374,8 @@ end
 
 function bdot_variant_autodiff(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true)
 
-    B = magnetic_B_vector_body(x, t, params)
-    Bdot = magnetic_B_vector_body_dot(x, t, params)
+    B = measure_magnetic_B_vector_body(x, t, params)
+    Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
 
     return bdot_variant_core(k, B, Bdot, saturate, params)
 end

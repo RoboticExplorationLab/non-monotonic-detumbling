@@ -85,6 +85,23 @@ function toDict(m::OrbitDynamicsParameters)
     )
 end
 
+Base.copy(m::OrbitDynamicsParameters) = OrbitDynamicsParameters(
+    copy(m.satellite_model),
+    m.distance_scale,
+    m.time_scale,
+    m.control_scale,
+    m.angular_rate_scale,
+    m.n_gravity,
+    m.m_gravity,
+    m.start_epoch,
+    m.control_type,
+    m.magnetic_model,
+    m.add_solar_radiation_pressure,
+    m.add_sun_thirdbody,
+    m.add_moon_thirdbody,
+    m.add_gravity_gradient_torque
+)
+
 """ cartesian_acceleration_torque(x::Array{<:Real}, params::OrbitSimulationParameters, epc::Epoch)
 Compute the accelerations and torque experienced by a satellite
 """
@@ -382,6 +399,24 @@ function gravity_gradient_torque(x::Vector{<:Real}, params::OrbitDynamicsParamet
     τ_gg = (3 * μ / r_mag^3) * hat(n) * J * n
 
     return τ_gg
+end
+
+function measure_magnetic_B_vector_body(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
+    B_body_true = magnetic_B_vector_body(x, t, params)
+    B_noise = params.satellite_model.magnetometer_std_dev .* randn(3)
+    return B_body_true + B_noise
+end
+
+function measure_magnetic_B_vector_body_dot(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
+    B_dot_body_true = magnetic_B_vector_body_dot(x, t, params)
+    B_dot_noise = params.satellite_model.magnetometer_std_dev .* randn(3)
+    return B_dot_body_true + B_dot_noise
+end
+
+function measure_angular_velocity(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters)
+    ω_body = x[11:13]
+    ω_noise = params.satellite_model.gyro_std_dev .* randn(3)
+    return ω_body + ω_noise
 end
 
 function satellite_orbit_attitude_dynamics(z::Array{<:Real}, p::OrbitDynamicsParameters, t::Real)
@@ -717,9 +752,10 @@ function monte_carlo_orbit_attitude(get_initial_state, controllers::Dict, Ntrial
 
     Threads.@threads for mc_step = 1:Ntrials
         x0 = get_initial_state()
+        pnew = get_mc_params(params)
         print("Thread $(Threads.threadid()), Trial $mc_step: x0 = $x0\n")
         for (controller_name, controller) in controllers
-            xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=integrator_dt, controller=controller, controller_dt=controller_dt)
+            xhist, uhist, thist = simulate_satellite_orbit_attitude_rk4(x0, pnew, tspan; integrator_dt=integrator_dt, controller=controller, controller_dt=controller_dt)
             mc_data[controller_name]["X"][mc_step, :, :] .= xhist
             mc_data[controller_name]["U"][mc_step, :, :] .= uhist
             mc_data[controller_name]["T"][mc_step, 1, :] .= thist
@@ -757,6 +793,12 @@ function mc_initial_angular_velocity(ω_magnitude_range)
     ω_direction = rand(3)
     ω_direction = ω_direction / norm(ω_direction)
     return ω_magnitude * ω_direction
+end
+
+function get_mc_params(params::OrbitDynamicsParameters)
+    pnew = copy(params)
+    pnew.satellite_model.gyro_bias .= params.satellite_model.gyro_bias_limit .* 2 .* (rand(3) .- 0.5)
+    return pnew
 end
 
 function mc_setup_get_initial_state(h_range, e_range, i_range, Ω_range, ω_range, M_range, angular_rate_magnitude_range)

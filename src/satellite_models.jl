@@ -40,6 +40,10 @@ struct SatelliteModel
     min_drag_area::Real
     max_drag_area::Real
     max_dipoles::Vector{<:Real} # Am², the maximum dipole that can be produced along each axis
+    magnetometer_std_dev::Real
+    gyro_std_dev::Real
+    gyro_bias::Vector{<:Real}
+    gyro_bias_limit::Real
 end
 
 Base.copy(m::SatelliteModel) = SatelliteModel(
@@ -51,6 +55,10 @@ Base.copy(m::SatelliteModel) = SatelliteModel(
     m.min_drag_area,
     m.max_drag_area,
     m.max_dipoles,
+    m.magnetometer_std_dev,
+    m.gyro_std_dev,
+    m.gyro_bias,
+    m.gyro_bias_limit,
 )
 function toDict(m::SatelliteModel)
     return Dict(
@@ -62,6 +70,10 @@ function toDict(m::SatelliteModel)
         "min_drag_area" => m.min_drag_area,
         "max_drag_area" => m.max_drag_area,
         "max_dipoles" => m.max_dipoles,
+        "magnetometer_std_dev" => m.magnetometer_std_dev,
+        "gyro_std_dev" => m.gyro_std_dev,
+        "gyro_bias" => m.gyro_bias,
+        "gyro_bias_limit" => m.gyro_bias_limit,
     )
 end
 
@@ -129,6 +141,10 @@ pqmini_model = SatelliteModel(
     0.05^2, # min drag area
     0.06 * 0.066, # max drag area
     pqmini_dipole_magnitude * ones(3),
+    15e-9, # nT - source: GomSpace M315
+    deg2rad(0.005) * sqrt(10), # 0.005 - source: MPU 3300
+    zeros(3),
+    deg2rad(1.0),
 )
 
 py4_faces = [
@@ -171,6 +187,10 @@ py4_model = SatelliteModel(
     0.1^2, # min drag area
     (2 * 0.2 * 0.15 + 0.1 * 0.15), # max drag area
     py4_dipole_magnitude,
+    15e-9, # T - source: GomSpace M315
+    deg2rad(0.005) * sqrt(10), # 0.005 - source: MPU 3300
+    zeros(3),
+    deg2rad(1.0),
 )
 
 py4_model_nodrag = SatelliteModel(
@@ -181,7 +201,11 @@ py4_model_nodrag = SatelliteModel(
     0.0, # zero drag
     py4_model.min_drag_area,
     py4_model.max_drag_area,
-    py4_model.max_dipoles
+    py4_model.max_dipoles,
+    15e-9, # nT - source: GomSpace M315
+    deg2rad(0.005) * sqrt(10), # 0.005 - source: MPU 3300
+    zeros(3),
+    deg2rad(1.0),
 )
 
 dove_faces = [
@@ -222,6 +246,10 @@ dove_model = SatelliteModel(
     0.1^2,
     (2 * 0.3 * 0.3 + 0.1 * 0.3),
     dove_dipole_magnitude * ones(3),
+    15e-9, # nT - source: GomSpace M315
+    deg2rad(0.005) * sqrt(10), # 0.005 - source: MPU 3300
+    zeros(3),
+    deg2rad(1.0),
 )
 
 # parameters based on Magnetorquer-Only Attitude Control paper
@@ -234,6 +262,10 @@ no_drag_1U = SatelliteModel(
     0.0,
     0.0,
     0.19 * ones(3),
+    0.0,
+    0.0,
+    zeros(3),
+    deg2rad(0.0),
 )
 
 # parameters based on Magnetorquer-Only Attitude Control paper
@@ -246,6 +278,10 @@ no_drag_3U = SatelliteModel(
     0.0,
     0.0,
     [0.57, 0.57, 0.19],
+    0.0,
+    0.0,
+    zeros(3),
+    deg2rad(0.0),
 )
 
 kevin_sat = SatelliteModel(
@@ -258,7 +294,11 @@ kevin_sat = SatelliteModel(
     0.0,
     0.0,
     0.0,
-    [8.8e-3, 1.373e-2, 8.2e-3]
+    [8.8e-3, 1.373e-2, 8.2e-3],
+    0.0,
+    0.0,
+    zeros(3),
+    deg2rad(0.0),
 )
 
 py4_model_diagonal = copy(py4_model)
