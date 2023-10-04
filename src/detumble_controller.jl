@@ -51,11 +51,12 @@ end
 
 function bdot_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1e0, saturate=true, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
 
-    B = measure_magnetic_B_vector_body(x, t, params)
+    B_body = measure_magnetic_B_vector_body(x, t, params)
     # Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
-    Bdot = update_bdot_estimate(Bhist, B, time_step)
+    # Bdot = update_bdot_estimate(Bhist, B, time_step)
+    B_body_f, Bdot_body_f = five_sample_polynomial_filter(Bhist, B_body, time_step)
 
-    m = -k * Bdot / norm(B)
+    m = -k * Bdot_body_f / norm(B_body_f)
 
     if saturate
         model = params.satellite_model
@@ -251,16 +252,18 @@ end
 function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, tderivative=10 * 60, α=10, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
     B1_body = measure_magnetic_B_vector_body(x, t, params) # magnetometer measurement
     # B1_dot_body_wrt_inertial_in_body = measure_magnetic_B_vector_body_dot(x, t, params) # derivative of magnetometer measurement
-    B1_dot_body_wrt_inertial_in_body = update_bdot_estimate(Bhist, B1_body, time_step)
+    # B1_dot_body_wrt_inertial_in_body = update_bdot_estimate(Bhist, B1_body, time_step)
+    B1_body_f, B1dot_body_f = five_sample_polynomial_filter(Bhist, B1_body, time_step)
+    B1_dot_body_wrt_inertial_in_body = B1dot_body_f
 
     ω_body_wrt_inertial_in_body = measure_angular_velocity(x, t, params) # gyro measurement
 
-    B1_dot_orbit_wrt_inertial_in_body = B1_dot_body_wrt_inertial_in_body - hat(B1_body) * ω_body_wrt_inertial_in_body
-    B2_body = B1_body + tderivative * B1_dot_orbit_wrt_inertial_in_body
+    B1_dot_orbit_wrt_inertial_in_body = B1_dot_body_wrt_inertial_in_body - hat(B1_body_f) * ω_body_wrt_inertial_in_body
+    B2_body = B1_body_f + tderivative * B1_dot_orbit_wrt_inertial_in_body
 
     J = params.satellite_model.inertia
 
-    m = blookahead_core(B1_body, B2_body, J, ω_body_wrt_inertial_in_body, k, α)
+    m = blookahead_core(B1_body_f, B2_body, J, ω_body_wrt_inertial_in_body, k, α)
 
     if saturate
         model = params.satellite_model
@@ -283,7 +286,7 @@ function bbarbalat_minVd(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParame
     B = measure_magnetic_B_vector_body(x, t, params)
     b = B / norm(B)
     # Bdot = measure_magnetic_B_vector_body_dot(x, t, params)
-    Bdot = update_bdot_estimate(Bhist, B, time_step)
+    B, Bdot = five_sample_polynomial_filter(Bhist, B, time_step)
     model = params.satellite_model
     T = [I(3) tsolver * I(3)]
 
@@ -346,14 +349,30 @@ function update_bdot_estimate(buffer, B, dt)
     buffer[2][:] .= buffer[1][:]
     buffer[1][:] .= B[:]
 
-    return Bdot
+    return B, Bdot
+end
+
+function five_sample_polynomial_filter(buffer, f, h)
+    c = [6.0 4.0 2.0 0.0 -2.0] / 10
+    # c = [0.8857142857142859, 0.2571428571428567, -0.08571428571428696, -0.1428571428571448, 0.08571428571428208]
+    f_filtered = (c[1] * f + c[2] * buffer[1] + c[3] * buffer[2] + c[4] * buffer[3] + c[5] * buffer[4]) / (h)
+
+    cdot = [2.0 1.0 0.0 -1.0 -2.0] / 10
+    # cdot = [1.0 0.0 -1.0 0.0 0.0] / 2 # 3 point linear fit
+    # cdot = [10800.0, -2600.0, -8000.0, -5400.0, 5200.0] / (14000.0) # quadratic fit
+    fdot = (cdot[1] * f + cdot[2] * buffer[1] + cdot[3] * buffer[2] + cdot[4] * buffer[3] + cdot[5] * buffer[4]) / (h)
+
+
+    buffer[2:4] = buffer[1:3]
+    buffer[1] = f
+    return f, fdot
 end
 
 function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
     B_body = measure_magnetic_B_vector_body(x, t, params)
-    Bdot_body = update_bdot_estimate(Bhist, B_body, time_step)
+    B_body_f, Bdot_body_f = update_bdot_estimate(Bhist, B_body, time_step)
 
-    return bdot_variant_core(k, B_body, Bdot_body, saturate, params)
+    return bdot_variant_core(k, B_body_f, Bdot_body_f, saturate, params)
 end
 
 
