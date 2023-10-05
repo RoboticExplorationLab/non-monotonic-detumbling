@@ -64,7 +64,7 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
         controller_idx += 1
     end
     @pgf groupopts = {
-        group_style = {group_size = "3 by 2", horizontal_sep = "0.5in", vertical_sep = "0.75in"},
+        group_style = {group_size = "3 by 2", horizontal_sep = "0.5in", vertical_sep = "0.9in"},
         height = "2in",
         width = "3.5in",
         ymin = 0,
@@ -81,6 +81,7 @@ end
 
 function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file_suffix="")
     Ncontrollers = length(keys(mc_results))
+    color_list = distinguishable_colors(Ncontrollers, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
     J = params["satellite_model"]["inertia"]
     Ntrials = size(mc_results[collect(keys(mc_results))[1]]["T"])[1]
     h_end = zeros(Ncontrollers, Ntrials)
@@ -112,8 +113,21 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
                 xlabel = L"$\|h\|$ (Nms)",
                 xtick = range(0, bins[end], 5),
                 title = controller_names[i],
+                xticklabel = raw"$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$",
+                xticklabel_style =
+                    {
+                        font = raw"\footnotesize"
+                    },
             },
-            Plot(Table(hist))
+            @pgf Plot(
+                {
+                    # color = color_list[i],
+                    draw = color_list[i],
+                    fill = color_list[i],
+                    fill_opacity = 0.7
+                },
+                Table(hist)
+            )
         )
         push!(plots, p)
         max_ylim = max(max_ylim, maximum(hist.weights))
@@ -137,6 +151,7 @@ end
 
 function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_threshold=0.01, file_suffix="")
     Ncontrollers = length(keys(mc_results))
+    color_list = distinguishable_colors(Ncontrollers, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
     J = params["satellite_model"]["inertia"]
     Ntrials = size(mc_results[collect(keys(mc_results))[1]]["T"])[1]
     t_done = zeros(Ncontrollers, Ntrials)
@@ -177,19 +192,26 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
                 xtick = range(0, bins[end-1], 5),
                 title = controller_names[i],
                 xticklabel = raw"$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$",
-                "xticklabel style" =
-                    {
-                        font = raw"\tiny"
-                    },
+                # "xticklabel style" =
+                #     {
+                #         font = raw"\tiny"
+                #     },
             },
-            Plot(Table(hist))
+            @pgf Plot(
+                {
+                    draw = color_list[i],
+                    fill = color_list[i],
+                    fill_opacity = 0.7
+                },
+                Table(hist)
+            )
         )
         push!(plots, p)
         max_ylim = max(max_ylim, maximum(hist.weights))
     end
 
     @pgf groupopts = {
-        group_style = {group_size = "3 by 2", horizontal_sep = "0.5in", vertical_sep = "0.8in"},
+        group_style = {group_size = "3 by 2", horizontal_sep = "0.5in", vertical_sep = "0.9in"},
         height = "2in",
         width = "3.5in",
         ymin = 0,
@@ -204,24 +226,27 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     end
 end
 
-datafilename_no_noise = "mc_orbit_varied_no_noise.jld2"
+file_suffix = "_no_noise_10deg_s"
+datafilename_no_noise = "mc_orbit_varied" * file_suffix * ".jld2"
 datapath_no_noise = joinpath(@__DIR__, "..", "data", datafilename_no_noise)
 data_no_noise = load(datapath_no_noise)
-mc_results_no_noise = data["mc_results"]
-params_no_noise = data["params"]
+mc_results_no_noise = data_no_noise["mc_results"]
+params_no_noise = data_no_noise["params"]
 
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix="_no_noise")
-pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix="_no_noise")
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
 h_thresh = 0.01
-pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix="_no_noise")
+pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
 
 
-datafilename_noisy = "mc_orbit_varied_noisy.jld2"
+file_suffix = "_noisy_10deg_s"
+datafilename_no_noise = "mc_orbit_varied" * file_suffix * ".jld2"
+datafilename_noisy = "mc_orbit_varied_noisy_10deg_s.jld2"
 datapath_noisy = joinpath(@__DIR__, "..", "data", datafilename_noisy)
 data_noisy = load(datapath_noisy)
-mc_results_noisy = data["mc_results"]
-params_noisy = data["params"]
+mc_results_noisy = data_noisy["mc_results"]
+params_noisy = data_noisy["params"]
 
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_noisy, params_noisy; file_suffix="_noisy")
-pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_noisy, params_noisy; file_suffix="_noisy")
-pgf_mc_plot_detumble_time_histogram(mc_results_noisy, params_noisy; terminal_threshold=h_thresh, file_suffix="_noisy")
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
+pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
