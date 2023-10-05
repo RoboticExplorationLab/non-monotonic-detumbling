@@ -226,7 +226,7 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     end
 end
 
-file_suffix = "_no_noise_10deg_s"
+file_suffix = "_no_noise_30deg_s"
 datafilename_no_noise = "mc_orbit_varied" * file_suffix * ".jld2"
 datapath_no_noise = joinpath(@__DIR__, "..", "data", datafilename_no_noise)
 data_no_noise = load(datapath_no_noise)
@@ -239,9 +239,8 @@ h_thresh = 0.01
 pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
 
 
-file_suffix = "_noisy_10deg_s"
-datafilename_no_noise = "mc_orbit_varied" * file_suffix * ".jld2"
-datafilename_noisy = "mc_orbit_varied_noisy_10deg_s.jld2"
+file_suffix = "_noisy_30deg_s"
+datafilename_noisy = "mc_orbit_varied" * file_suffix * ".jld2"
 datapath_noisy = joinpath(@__DIR__, "..", "data", datafilename_noisy)
 data_noisy = load(datapath_noisy)
 mc_results_noisy = data_noisy["mc_results"]

@@ -58,7 +58,7 @@ Ntrials = 100
 Random.seed!(0)
 mc_results_no_noise = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params_no_noise, tspan; integrator_dt=integrator_dt, controller_dt=controller_dt)
 
-datafilename = "mc_orbit_varied_no_noise.jld2"
+datafilename = "mc_orbit_varied_no_noise_30deg_s.jld2"
 datapath = joinpath(@__DIR__, "..", "data", datafilename)
 print("Saving data to $datapath")
 save(datapath, Dict("mc_results" => mc_results_no_noise, "params" => toDict(params_no_noise)))
@@ -66,7 +66,7 @@ save(datapath, Dict("mc_results" => mc_results_no_noise, "params" => toDict(para
 Random.seed!(0)
 mc_results_noisy = monte_carlo_orbit_attitude(get_initial_state, controllers, Ntrials, params_noisy, tspan; integrator_dt=integrator_dt, controller_dt=controller_dt)
 
-datafilename = "mc_orbit_varied_noisy.jld2"
+datafilename = "mc_orbit_varied_noisy_30deg_s.jld2"
 datapath = joinpath(@__DIR__, "..", "data", datafilename)
 print("Saving data to $datapath")
 save(datapath, Dict("mc_results" => mc_results_noisy, "params" => toDict(params_noisy)))
