@@ -355,7 +355,7 @@ end
 function five_sample_polynomial_filter(buffer, f, h)
     c = [6.0 4.0 2.0 0.0 -2.0] / 10
     # c = [0.8857142857142859, 0.2571428571428567, -0.08571428571428696, -0.1428571428571448, 0.08571428571428208]
-    f_filtered = (c[1] * f + c[2] * buffer[1] + c[3] * buffer[2] + c[4] * buffer[3] + c[5] * buffer[4]) / (h)
+    f_filtered = (c[1] * f + c[2] * buffer[1] + c[3] * buffer[2] + c[4] * buffer[3] + c[5] * buffer[4])
 
     cdot = [2.0 1.0 0.0 -1.0 -2.0] / 10
     # cdot = [1.0 0.0 -1.0 0.0 0.0] / 2 # 3 point linear fit
@@ -365,7 +365,7 @@ function five_sample_polynomial_filter(buffer, f, h)
 
     buffer[2:4] = buffer[1:3]
     buffer[1] = f
-    return f, fdot
+    return f_filtered, fdot
 end
 
 function bdot_variant(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; k=1.0, saturate=true, Bhist=[zeros(3) for i = 1:4], time_step=0.1)
