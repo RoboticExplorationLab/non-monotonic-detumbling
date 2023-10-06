@@ -318,3 +318,5 @@ kevin_sat = SatelliteModel(
 
 py4_model_diagonal = copy(py4_model)
 py4_model_diagonal.inertia .= Matrix(diagm([0.001, 0.003, 0.005]))
+py4_model_no_noise_diagonal = copy(py4_model_no_noise)
+py4_model_no_noise_diagonal.inertia .= Matrix(diagm([0.001, 0.003, 0.005]))
