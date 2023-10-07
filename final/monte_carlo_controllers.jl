@@ -44,11 +44,11 @@ get_initial_state = mc_setup_get_initial_state(
 )
 
 controllers = Dict(
-    "B-cross" => (x_, t_, p_, B_) -> bcross_control(x_, t_, p_; k=4e-6, saturate=true),
+    "B-cross" => (x_, t_, p_, B_) -> bcross_control(x_, t_, p_; k=4e-5, saturate=true),
     "Lyapunov Momentum" => (x_, t_, p_, B_) -> bmomentum_control(x_, t_, p_; k=2e3, saturate=true),
     "B-dot Variant" => (x_, t_, p_, B_) -> bdot_variant(x_, t_, p_; k=0.4, saturate=true, Bhist=B_, time_step=integrator_dt),
     "B-dot" => (x_, t_, p_, B_) -> bdot_control(x_, t_, p_; k=1.0, saturate=true, Bhist=B_, time_step=integrator_dt),
-    "Projection-based" => (x_, t_, m_, B_) -> projection_control(x_, t_, m_; k1=10.0, k2=10.0, saturate=true),
+    "Projection-based" => (x_, t_, m_, B_) -> projection_control(x_, t_, m_; k1=0.1, k2=10.0, saturate=true),
     "Discrete Non-monotonic" => (x_, t_, p_, B_) -> bderivative_control(x_, t_, p_; k=3e3, saturate=true, α=100.0, tderivative=10 * 60, Bhist=B_, time_step=integrator_dt),
 )
 

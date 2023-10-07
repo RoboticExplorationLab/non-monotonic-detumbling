@@ -34,25 +34,25 @@ controller_dt = 0.0
 sweep_range = -4:1:5 #[-1.0, 0.0, 1.0]
 
 controllers = Dict(
-    "B-Cross" => Dict(
+    "B-cross" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bcross_control(x_, t_, p_; k=k_, saturate=true),
-        "gains" => 4e-6 * (10.0 .^ sweep_range)
+        "gains" => 4e-5 * (10.0 .^ sweep_range)
     ),
     "Lyapunov Momentum" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bmomentum_control(x_, t_, p_; k=k_, saturate=true),
         "gains" => 2e3 * (10.0 .^ sweep_range)
     ),
-    "B-Dot Variant" => Dict(
+    "B-dot Variant" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bdot_variant(x_, t_, p_; k=k_, saturate=true, Bhist=B_, time_step=integrator_dt),
         "gains" => 0.4 * (10.0 .^ sweep_range)
     ),
-    "B-Dot" => Dict(
+    "B-dot" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bdot_control(x_, t_, p_; k=k_, saturate=true, Bhist=B_, time_step=integrator_dt),
         "gains" => 1.0 * (10.0 .^ sweep_range)
     ),
     "Projection-based" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> projection_control(x_, t_, p_; k1=k_, k2=10.0, saturate=true),
-        "gains" => 10.0 * (10.0 .^ sweep_range)
+        "gains" => 0.1 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0, Bhist=B_, time_step=integrator_dt),

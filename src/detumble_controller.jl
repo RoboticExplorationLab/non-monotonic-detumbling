@@ -14,8 +14,7 @@ function h_B_aligned_initial_conditions(x0::Vector{<:Real}, ω_magnitude_rad_s, 
     bperp = cross(b0, h0)
     bperp = bperp / norm(bperp)
     θ0 = acos(b0'h0)
-    q0 = [sin(θ0 / 2); bperp * cos(θ0 / 2)]
-    q0 = q0 / norm(q0)
+    q0 = axis_angle_to_quaternion(θ0 * bperp)
 
     return [x0[1:6]; q0; ω0]
 end
@@ -148,7 +147,7 @@ function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPar
     J = params.satellite_model.inertia
     Bnorm = norm(B)
     Jω = J * ω
-    k = k1 * exp.(-k2 * norm((B') / Bnorm * (Jω / (norm(Jω) + ϵ))))
+    k = k1 * exp.(-k2 * abs((B'Jω / (Bnorm * (norm(Jω) + ϵ)))))
     m = (k / (Bnorm^2)) * hat(B)' * Jω
     if saturate
         model = params.satellite_model
@@ -191,7 +190,7 @@ function interpolate_B_vectors(B_vectors, time_range)
     return B_vec_interp
 end
 
-function blookahead_core(B1, B2, J, ω, k, α)
+function blookahead_core(B1, B2, J, ω, k, α, max_dipoles)
     B1norm = norm(B1)
     B2norm = norm(B1)
 
@@ -212,7 +211,7 @@ function blookahead_core(B1, B2, J, ω, k, α)
 
     m̄ = (I + Q1 + Q2) \ (q1 + q2)
 
-    m = tanh.(k * m̄[1:3])
+    m = max_dipoles .* tanh.(k * m̄[1:3])
 end
 
 function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParameters, dt_orbit, Nt_orbit)
@@ -236,7 +235,7 @@ function setup_blookahead_control(x0::Vector{<:Real}, params::OrbitDynamicsParam
         ω = measure_angular_velocity(x, t, params)
         J = params.satellite_model.inertia
 
-        m = blookahead_core(B1, B2, J, ω, k, α)
+        m = blookahead_core(B1, B2, J, ω, k, α, params.satellite_model.max_dipoles)
 
         if saturate
             model = params.satellite_model
@@ -264,7 +263,7 @@ function bderivative_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPa
 
     J = params.satellite_model.inertia
 
-    m = blookahead_core(B1_body_f, B2_body, J, ω_body_wrt_inertial_in_body, k, α)
+    m = blookahead_core(B1_body_f, B2_body, J, ω_body_wrt_inertial_in_body, k, α, params.satellite_model.max_dipoles)
 
     if saturate
         model = params.satellite_model
