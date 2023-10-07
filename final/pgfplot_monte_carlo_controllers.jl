@@ -99,6 +99,7 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
     end
     h_max = maximum(h_end)
     bins = range(0, h_max, Ntrials)
+    println("Final momentum bins = $bins")
     plots = []
     max_ylim = 0.0
     for i = 1:size(h_end)[1]
@@ -177,6 +178,7 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     t_done /= (60 * 60) # convert to hours
     t_done_max = maximum(t_done)
     bins = range(start=0.0, stop=t_done_max + (t_done_max / Ntrials), step=t_done_max / Ntrials)
+    println("Detumble time bins = $bins")
     plots = []
     max_ylim = 0.0
     for i = 1:size(t_done)[1]
@@ -233,9 +235,9 @@ data_no_noise = load(datapath_no_noise)
 mc_results_no_noise = data_no_noise["mc_results"]
 params_no_noise = data_no_noise["params"]
 
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
-pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
 h_thresh = 0.01
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix, max_samples=200)
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
 pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
 
 
@@ -246,6 +248,6 @@ data_noisy = load(datapath_noisy)
 mc_results_noisy = data_noisy["mc_results"]
 params_noisy = data_noisy["params"]
 
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix, max_samples=200)
 pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
 pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)

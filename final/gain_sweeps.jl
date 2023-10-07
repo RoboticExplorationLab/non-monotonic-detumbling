@@ -56,7 +56,7 @@ controllers = Dict(
     ),
     "Discrete Non-monotonic" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0, Bhist=B_, time_step=integrator_dt),
-        "gains" => 3e2 * (10.0 .^ sweep_range)
+        "gains" => 3e3 .* (10.0 .^ sweep_range)
     ),
 )
 

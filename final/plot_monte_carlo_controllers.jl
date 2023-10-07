@@ -125,7 +125,7 @@ function mc_plot_detumble_time_histogram(mc_results, params; title="", terminal_
         legend=false)
 end
 
-datafilename = "mc_orbit_varied_all.jld2"
+datafilename = "mc_orbit_varied_no_noise_30deg_s.jld2"
 datapath = joinpath(@__DIR__, "..", "data", datafilename)
 data = load(datapath)
 mc_results = data["mc_results"]

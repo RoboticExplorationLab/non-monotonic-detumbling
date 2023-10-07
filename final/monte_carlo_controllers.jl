@@ -36,7 +36,7 @@ controller_dt = 0.0
 get_initial_state = mc_setup_get_initial_state(
     (400e3, 400e3), #h_range
     (0.0, 0.0), #e_range
-    (0, pi), #i_range
+    (deg2rad(20), deg2rad(160)), #i_range
     (0, 2 * pi), #Ω_range
     (0, 2 * pi), #ω_range
     (0, 2 * pi), #M_range
@@ -44,12 +44,12 @@ get_initial_state = mc_setup_get_initial_state(
 )
 
 controllers = Dict(
-    "B-Cross" => (x_, t_, p_, B_) -> bcross_control(x_, t_, p_; k=4e-6, saturate=true),
+    "B-cross" => (x_, t_, p_, B_) -> bcross_control(x_, t_, p_; k=4e-6, saturate=true),
     "Lyapunov Momentum" => (x_, t_, p_, B_) -> bmomentum_control(x_, t_, p_; k=2e3, saturate=true),
-    "B-Dot Variant" => (x_, t_, p_, B_) -> bdot_variant(x_, t_, p_; k=0.4, saturate=true, Bhist=B_, time_step=integrator_dt),
-    "B-Dot" => (x_, t_, p_, B_) -> bdot_control(x_, t_, p_; k=1.0, saturate=true, Bhist=B_, time_step=integrator_dt),
+    "B-dot Variant" => (x_, t_, p_, B_) -> bdot_variant(x_, t_, p_; k=0.4, saturate=true, Bhist=B_, time_step=integrator_dt),
+    "B-dot" => (x_, t_, p_, B_) -> bdot_control(x_, t_, p_; k=1.0, saturate=true, Bhist=B_, time_step=integrator_dt),
     "Projection-based" => (x_, t_, m_, B_) -> projection_control(x_, t_, m_; k1=10.0, k2=10.0, saturate=true),
-    "Discrete Non-monotonic" => (x_, t_, p_, B_) -> bderivative_control(x_, t_, p_; k=3e2, saturate=true, α=100.0, tderivative=10 * 60, Bhist=B_, time_step=integrator_dt),
+    "Discrete Non-monotonic" => (x_, t_, p_, B_) -> bderivative_control(x_, t_, p_; k=3e3, saturate=true, α=100.0, tderivative=10 * 60, Bhist=B_, time_step=integrator_dt),
 )
 
 Ntrials = 100

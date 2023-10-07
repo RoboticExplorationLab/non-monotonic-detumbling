@@ -43,6 +43,8 @@ x0 = [
     0.8726646259971648
 ]
 
+tspan = (0.0, 5 * 60 * 60.0)
+
 x_osc_0 = SatelliteDynamics.sCARTtoOSC(x0[1:6])
 
 k_bcross = bcross_gain(x_osc_0, params)
@@ -52,7 +54,7 @@ k_bcross_stuck = 100 * k_bcross
 xhist_bcross_stuck, uhist_bcross_stuck, thist_bcross_stuck = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=0.1, controller=(x, t, m) -> bcross_control(x, t, m; k=k_bcross_stuck, saturate=true), controller_dt=0.0)
 
 J = params.satellite_model.inertia
-downsample = get_downsample(length(thist_bcross), 500)
+downsample = get_downsample(length(thist_bcross), 100)
 
 ω_bcross = xhist_bcross[11:13, downsample]
 h_bcross = J * ω_bcross
@@ -71,11 +73,13 @@ p = @pgf Axis(
     {
         xmajorgrids,
         ymajorgrids,
-        height = "3.5in",
+        height = "2.5in",
         width = "3.5in",
         xlabel = "Time (hours)",
         ylabel = L"$\|h\|$ (Nms)",
         legend_pos = "north east",
+        inner_frame_xsep = "5pt",
+        # in the tikz, add title = {\rule{0pt}{1pt}}  to fix cut off character on top of plot
     },
     PlotInc(lineopts1, Coordinates(t_plot_bcross, h̄_bcross)),
     PlotInc(lineopts2, Coordinates(t_plot_bcross_stuck, h̄_bcross_stuck)),
