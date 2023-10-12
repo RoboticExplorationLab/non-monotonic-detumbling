@@ -48,16 +48,16 @@ end
 
 Base.copy(m::SatelliteModel) = SatelliteModel(
     m.mass,
-    m.inertia,
-    m.center_of_mass,
-    m.faces,
+    copy(m.inertia),
+    copy(m.center_of_mass),
+    copy(m.faces),
     m.drag_coefficient,
     m.min_drag_area,
     m.max_drag_area,
-    m.max_dipoles,
+    copy(m.max_dipoles),
     m.magnetometer_std_dev,
     m.gyro_std_dev,
-    m.gyro_bias,
+    copy(m.gyro_bias),
     m.gyro_bias_limit,
 )
 function toDict(m::SatelliteModel)
