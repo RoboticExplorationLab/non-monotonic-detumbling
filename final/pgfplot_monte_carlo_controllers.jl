@@ -182,18 +182,20 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     plots = []
     max_ylim = 0.0
     for i = 1:size(t_done)[1]
-        hist = fit(Histogram, t_done[i, :], bins, closed=:left)
+        t_done_i = sort(t_done[i, :])
+        cum = 100 .* [count(t_done_i .<= bi) for bi in bins] ./ Ntrials
         p = @pgf Axis(
             {
                 "ybar interval",
                 "xticklabel interval boundaries",
                 ymajorgrids,
                 xmajorgrids = "false",
-                ylabel = "Count",
+                # ylabel = "Percent",
                 xlabel = "Time (hours)",
                 xtick = range(0, bins[end-1], 5),
                 title = controller_names[i],
                 xticklabel = raw"$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$",
+                yticklabel = raw"$\pgfmathprintnumber\tick\,\%$",
                 # "xticklabel style" =
                 #     {
                 #         font = raw"\tiny"
@@ -205,11 +207,11 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
                     fill = color_list[i],
                     fill_opacity = 0.7
                 },
-                Table(hist)
+                # Table(hist)
+                Coordinates(bins[1:end-1], cum[1:end-1])
             )
         )
         push!(plots, p)
-        max_ylim = max(max_ylim, maximum(hist.weights))
     end
 
     @pgf groupopts = {
@@ -217,37 +219,37 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
         height = "2in",
         width = "3.5in",
         ymin = 0,
-        ymax = max_ylim,
+        ymax = 100,
     }
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_histogram" * file_suffix * ".pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_cumulative" * file_suffix * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_histogram" * file_suffix * ".tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_cumulative" * file_suffix * ".tikz"), gp, include_preamble=false)
     end
 end
 
-file_suffix = "_no_noise_30deg_s"
-datafilename_no_noise = "mc_orbit_varied" * file_suffix * ".jld2"
+file_suffix_no_noise = "_no_noise_30deg_s"
+datafilename_no_noise = "mc_orbit_varied" * file_suffix_no_noise * ".jld2"
 datapath_no_noise = joinpath(@__DIR__, "..", "data", datafilename_no_noise)
 data_no_noise = load(datapath_no_noise)
 mc_results_no_noise = data_no_noise["mc_results"]
 params_no_noise = data_no_noise["params"]
 
 h_thresh = 0.01
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix, max_samples=200)
-pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
-pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix_no_noise, max_samples=200)
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix_no_noise)
+pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix_no_noise)
 
 
-file_suffix = "_noisy_30deg_s"
-datafilename_noisy = "mc_orbit_varied" * file_suffix * ".jld2"
+file_suffix_noisy = "_noisy_30deg_s"
+datafilename_noisy = "mc_orbit_varied" * file_suffix_noisy * ".jld2"
 datapath_noisy = joinpath(@__DIR__, "..", "data", datafilename_noisy)
 data_noisy = load(datapath_noisy)
 mc_results_noisy = data_noisy["mc_results"]
 params_noisy = data_noisy["params"]
 
-pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix, max_samples=200)
-pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix)
-pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix)
+pgf_mc_plot_momentum_magnitude_vs_time(mc_results_noisy, params_noisy; file_suffix=file_suffix_noisy, max_samples=200)
+pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_noisy, params_noisy; file_suffix=file_suffix_noisy)
+pgf_mc_plot_detumble_time_histogram(mc_results_noisy, params_noisy; terminal_threshold=h_thresh, file_suffix=file_suffix_noisy)
