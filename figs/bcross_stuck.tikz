@@ -1,6 +1,6 @@
 % Recommended preamble:
 \begin{tikzpicture}
-\begin{axis}[xmajorgrids, ymajorgrids, height={2.5in}, width={3.5in}, xlabel={Time (hours)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}]
+\begin{axis}[xmajorgrids, ymajorgrids, height={2.5in}, width={3.5in}, xlabel={Time (hours)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={{\rule{0pt}{1pt}}}]
     \addplot+[no marks, very thick, style={solid}, color={rgb,1:red,0.8196;green,0.2902;blue,0.0}, opacity={0.8}]
         coordinates {
             (0.0,0.004363323129985824)
@@ -211,6 +211,13 @@
             (5.0,0.00020661418623094143)
         }
         ;
-    \legend{{k = 4.00e-06},{k = 4.00e-04}}
+    \node 
+    [pin={[draw=black,fill=white]right:k = 4.00e-06}]  at 
+    (0.45,0.0018196295616615698)
+    {};
+    \node 
+    [pin={[draw=black,fill=white]above:k = 4.00e-04}]  at 
+    (3.45,0.0002981881153933364)
+    {};
 \end{axis}
 \end{tikzpicture}

@@ -13,7 +13,6 @@ include("../src/satellite_simulator.jl")
 include("../src/detumble_controller.jl")
 include("../src/satellite_models.jl")
 
-SAVEAS_PDF = true
 detumble_color_list = distinguishable_colors(6, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
 
 params = OrbitDynamicsParameters(py4_model_no_noise_diagonal;
@@ -78,16 +77,25 @@ p = @pgf Axis(
         xlabel = "Time (hours)",
         ylabel = L"$\|h\|$ (Nms)",
         legend_pos = "north east",
-        inner_frame_xsep = "5pt",
-        # in the tikz, add title = {\rule{0pt}{1pt}}  to fix cut off character on top of plot
+        title = raw"{\rule{0pt}{1pt}}",
     },
     PlotInc(lineopts1, Coordinates(t_plot_bcross, h̄_bcross)),
     PlotInc(lineopts2, Coordinates(t_plot_bcross_stuck, h̄_bcross_stuck)),
-    Legend([format("k = {:.2e}", k_bcross), format("k = {:.2e}", k_bcross_stuck)])
+    [raw"\node ",
+        {
+            pin = "[draw=black,fill=white]right:" * format("k = {:.2e}", k_bcross)
+        },
+        " at ",
+        Coordinate(t_plot_bcross[10], h̄_bcross[10]),
+        "{};"],
+    [raw"\node ",
+        {
+            pin = "[draw=black,fill=white]above:" * format("k = {:.2e}", k_bcross_stuck)
+        },
+        " at ",
+        Coordinate(t_plot_bcross[70], h̄_bcross_stuck[70]),
+        "{};"],
 )
 
-if SAVEAS_PDF
-    pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck.pdf"), p)
-else
-    pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck.tikz"), p, include_preamble=false)
-end
+pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck.pdf"), p)
+pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck.tikz"), p, include_preamble=false)
