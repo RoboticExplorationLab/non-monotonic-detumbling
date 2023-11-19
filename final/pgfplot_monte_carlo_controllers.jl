@@ -6,6 +6,8 @@ using JLD2
 using Colors
 using PGFPlotsX
 using StatsBase: Histogram, fit
+using Statistics: mean
+using Formatting
 
 include("../src/satellite_simulator.jl")
 
@@ -58,8 +60,7 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
                 title = controller_name,
             },
             plot_incs...,
-            Legend([i == length(plot_incs) ? "Average" : (i == length(plot_incs) - 1 ? "Single Run" : "") for i = axes(plot_incs, 1)])
-        )
+            Legend([i == length(plot_incs) ? "Average" : "" for i = axes(plot_incs, 1)]))
         push!(plots, p)
         controller_idx += 1
     end
@@ -104,6 +105,19 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
     max_ylim = 0.0
     for i = 1:size(h_end)[1]
         hist = fit(Histogram, h_end[i, :], bins, closed=:left)
+        h_avg_i = mean(h_end[i, :])
+
+        hist_plot = @pgf PlotInc(
+            {
+                # color = color_list[i],
+                draw = color_list[i],
+                fill = color_list[i],
+                fill_opacity = 0.7
+            },
+            Table(hist)
+        )
+        avg_line_plot = [raw"\draw " * "($h_avg_i, 0) -- ($h_avg_i, $Ntrials);"]
+
         p = @pgf Axis(
             {
                 "ybar interval",
@@ -120,15 +134,15 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
                         font = raw"\footnotesize"
                     },
             },
-            @pgf Plot(
+            hist_plot,
+            avg_line_plot,
+            [raw"\node ",
                 {
-                    # color = color_list[i],
-                    draw = color_list[i],
-                    fill = color_list[i],
-                    fill_opacity = 0.7
+                    pin = raw"[draw=black,fill=white]right:\footnotesize Average: " * format("{:.2e} Nms", h_avg_i)
                 },
-                Table(hist)
-            )
+                " at ",
+                Coordinate(h_avg_i, (Ntrials / 2)),
+                "{};"],
         )
         push!(plots, p)
         max_ylim = max(max_ylim, maximum(hist.weights))
@@ -150,7 +164,7 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
     end
 end
 
-function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_threshold=0.01, file_suffix="")
+function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_threshold=0.01, file_suffix="")
     Ncontrollers = length(keys(mc_results))
     color_list = distinguishable_colors(Ncontrollers, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
     J = params["satellite_model"]["inertia"]
@@ -183,7 +197,31 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
     max_ylim = 0.0
     for i = 1:size(t_done)[1]
         t_done_i = sort(t_done[i, :])
+        t_done_i_avg = mean(t_done_i[t_done_i.<t_done_max])
         cum = 100 .* [count(t_done_i .<= bi) for bi in bins] ./ Ntrials
+
+        cum_plot = @pgf Plot(
+            {
+                draw = color_list[i],
+                fill = color_list[i],
+                fill_opacity = 0.7
+            },
+            # Table(hist)
+            Coordinates(bins[1:end-1], cum[1:end-1])
+        )
+        avg_line_plot = [raw"\draw " * "($t_done_i_avg, 0) -- ($t_done_i_avg, 100);"]
+        avg_line_pin = @pgf [raw"\node ",
+            {
+                pin = raw"[draw=black,fill=white,align=left]left:\footnotesize Average \\ \footnotesize" * format("{:.2f} hours", t_done_i_avg)
+            },
+            " at ",
+            Coordinate(t_done_i_avg, 75),
+            "{};"]
+
+        pct_complete = cum[end-2]
+        pct_complete_yloc = 25 #pct_complete > 50 ? 25 : 75
+        pct_complete_label = [raw"\node [draw=black,fill=white,align=left] at " * "($(bins[end-10]), $pct_complete_yloc)" * raw"{\footnotesize " * "$(Int(floor(pct_complete)))" * raw"\% \\ \footnotesize completed};"]
+
         p = @pgf Axis(
             {
                 "ybar interval",
@@ -201,15 +239,10 @@ function pgf_mc_plot_detumble_time_histogram(mc_results, params; terminal_thresh
                 #         font = raw"\tiny"
                 #     },
             },
-            @pgf Plot(
-                {
-                    draw = color_list[i],
-                    fill = color_list[i],
-                    fill_opacity = 0.7
-                },
-                # Table(hist)
-                Coordinates(bins[1:end-1], cum[1:end-1])
-            )
+            cum_plot,
+            avg_line_plot,
+            avg_line_pin,
+            pct_complete_label
         )
         push!(plots, p)
     end
@@ -240,7 +273,7 @@ params_no_noise = data_no_noise["params"]
 h_thresh = 0.01
 pgf_mc_plot_momentum_magnitude_vs_time(mc_results_no_noise, params_no_noise; file_suffix=file_suffix_no_noise, max_samples=200)
 pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_no_noise, params_no_noise; file_suffix=file_suffix_no_noise)
-pgf_mc_plot_detumble_time_histogram(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix_no_noise)
+pgf_mc_plot_detumble_time_cumulative(mc_results_no_noise, params_no_noise; terminal_threshold=h_thresh, file_suffix=file_suffix_no_noise)
 
 
 file_suffix_noisy = "_noisy_30deg_s"
@@ -252,4 +285,4 @@ params_noisy = data_noisy["params"]
 
 pgf_mc_plot_momentum_magnitude_vs_time(mc_results_noisy, params_noisy; file_suffix=file_suffix_noisy, max_samples=200)
 pgf_mc_plot_momentum_magnitude_final_histogram(mc_results_noisy, params_noisy; file_suffix=file_suffix_noisy)
-pgf_mc_plot_detumble_time_histogram(mc_results_noisy, params_noisy; terminal_threshold=h_thresh, file_suffix=file_suffix_noisy)
+pgf_mc_plot_detumble_time_cumulative(mc_results_noisy, params_noisy; terminal_threshold=h_thresh, file_suffix=file_suffix_noisy)
