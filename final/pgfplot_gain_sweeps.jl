@@ -22,7 +22,7 @@ function pgf_gs_plot_momentum_magnitude_vs_time(gs_results, params; max_samples=
         plot_incs = []
         legend_entries = []
         gains = gs_results[controller_name]["gains"]
-        for gain_idx = 3:length(gains)-2 #in eachindex(gains)
+        for gain_idx in eachindex(gains)
             gain = gains[gain_idx]
             xhist = gs_results[controller_name]["X"][gain_idx, :, :]
             uhist = gs_results[controller_name]["U"][gain_idx, :, :]
@@ -33,7 +33,11 @@ function pgf_gs_plot_momentum_magnitude_vs_time(gs_results, params; max_samples=
             h = J * ω
             h̄ = dropdims(sqrt.(sum(h .* h, dims=1)); dims=1)
             t_plot = thist[downsample] / (60 * 60)
-            lineopts = @pgf {no_marks, "thick", style = "solid", color = color_list[gain_idx], opacity = 0.8}
+            if gain_idx == 3
+                lineopts = @pgf {no_marks, line_width = "2pt", style = "solid", color = color_list[gain_idx], opacity = 0.8, on_layer = "axis descriptions"}
+            else
+                lineopts = @pgf {no_marks, line_width = "1.25pt", style = "densely dotted", color = color_list[gain_idx], opacity = 0.8}
+            end
             push!(plot_incs,
                 PlotInc(lineopts, Coordinates(t_plot, h̄)),
             )
@@ -48,6 +52,7 @@ function pgf_gs_plot_momentum_magnitude_vs_time(gs_results, params; max_samples=
         }
         p = @pgf Axis(
             {
+                set_layers = "standard",
                 xmajorgrids,
                 ymajorgrids,
                 xlabel = "Time (hours)",
