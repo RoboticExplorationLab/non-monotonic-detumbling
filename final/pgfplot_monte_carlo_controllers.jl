@@ -197,8 +197,11 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
     max_ylim = 0.0
     for i = 1:size(t_done)[1]
         t_done_i = sort(t_done[i, :])
-        t_done_i_avg = mean(t_done_i[t_done_i.<t_done_max])
+        # t_done_i_avg = mean(t_done_i[t_done_i.<t_done_max])
+        # t_done_i_avg = mean(t_done_i)
         cum = 100 .* [count(t_done_i .<= bi) for bi in bins] ./ Ntrials
+        index_50pct = findfirst(cum .> 50)
+        t_done_i_avg = bins[index_50pct]
 
         cum_plot = @pgf Plot(
             {
@@ -212,15 +215,26 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
         avg_line_plot = [raw"\draw " * "($t_done_i_avg, 0) -- ($t_done_i_avg, 100);"]
         avg_line_pin = @pgf [raw"\node ",
             {
-                pin = raw"[draw=black,fill=white,align=left]left:\footnotesize Average \\ \footnotesize" * format("{:.2f} hours", t_done_i_avg)
+                pin = raw"[draw=black,fill=white,align=left]" * (t_done_i_avg > bins[end-1] / 2 ? "left" : "right") * raw":\scriptsize 50\% completed \\ \scriptsize" * format("{:.2f} hours", t_done_i_avg)
             },
             " at ",
             Coordinate(t_done_i_avg, 75),
             "{};"]
 
-        pct_complete = cum[end-2]
+        # get index where 100% is hit, end otherwise
+        complete_idx_i = findfirst(cum .>= 100)
+        complete_idx_i = isnothing(complete_idx_i) || (complete_idx_i > length(cum) - 2) ? length(cum) - 2 : complete_idx_i
+
+        pct_complete = cum[complete_idx_i]
+        completed_hours_i = bins[complete_idx_i+1]
+        pct_complete_line_plot = [raw"\draw " * "($completed_hours_i, 0) -- ($completed_hours_i, 100);"]
         pct_complete_yloc = 25 #pct_complete > 50 ? 25 : 75
-        pct_complete_label = [raw"\node [draw=black,fill=white,align=left] at " * "($(bins[end-10]), $pct_complete_yloc)" * raw"{\footnotesize " * "$(Int(floor(pct_complete)))" * raw"\% \\ \footnotesize completed};"]
+        pct_complete_label = [raw"\node [draw=black,fill=white,align=left] at " * "($(bins[end-10]), $pct_complete_yloc)" * raw"{\scriptsize " * "$(Int(floor(pct_complete)))" * raw"\%  completed\\ \scriptsize" * format("{:.2f} hours", completed_hours_i) * "};"]
+
+        if pct_complete < 50
+            avg_line_pin = []
+            avg_line_plot = []
+        end
 
         p = @pgf Axis(
             {
@@ -242,6 +256,7 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
             cum_plot,
             avg_line_plot,
             avg_line_pin,
+            pct_complete_line_plot,
             pct_complete_label
         )
         push!(plots, p)
