@@ -31,7 +31,7 @@ x0 = h_B_aligned_initial_conditions(x0, deg2rad(50), params)
 integrator_dt = 0.1
 controller_dt = 0.0
 
-sweep_range = -4:1:5 #[-1.0, 0.0, 1.0]
+sweep_range = -2:1:3
 
 controllers = Dict(
     "B-cross" => Dict(
@@ -52,7 +52,7 @@ controllers = Dict(
     ),
     "Projection-based" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> projection_control(x_, t_, p_; k1=k_, k2=10.0, saturate=true),
-        "gains" => 0.1 * (10.0 .^ sweep_range)
+        "gains" => 0.05 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
         "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0, Bhist=B_, time_step=integrator_dt),
