@@ -15,6 +15,33 @@ include("../src/satellite_models.jl")
 
 detumble_color_list = distinguishable_colors(6, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
 
+color_mode = "_dark_mode"
+# color_mode = "" # normal
+
+function color_to_pgf_string(c::Colors.Colorant)
+    rgb = convert(Colors.RGB{Float64}, c)
+    str = format("rgb,1:red,{:.4f};green,{:.4f};blue,{:.4f}", Colors.red(rgb), Colors.green(rgb), Colors.blue(rgb))
+    return raw"{" * str * raw"}"
+end
+
+if color_mode == "_dark_mode"
+    const color_grid = RGBA(([148, 148, 148, 255] ./ 255)...)
+    const color_text = RGBA(([205, 209, 209, 255] ./ 255)...)
+    const color_axis = color_text
+    const color_bg = RGBA(([0x00, 0x22, 0x39, 0xFF] ./ 255)...)
+else
+    const color_grid = RGBA(([191, 191, 191, 255] ./ 255)...)
+    const color_text = RGBA(([0, 0, 0, 255] ./ 255)...)
+    const color_axis = color_text
+    const color_bg = RGBA(([255, 255, 255, 255] ./ 255)...)
+end
+
+color_grid_pgf = color_to_pgf_string(color_grid)
+color_text_pgf = color_to_pgf_string(color_text)
+color_axis_pgf = color_to_pgf_string(color_axis)
+color_bg_pgf = color_to_pgf_string(color_bg)
+
+
 params = OrbitDynamicsParameters(py4_model_no_noise_diagonal;
     distance_scale=1.0,
     time_scale=1.0,
@@ -65,11 +92,18 @@ h_bcross_stuck = J * ω_bcross_stuck
 h̄_bcross_stuck = dropdims(sqrt.(sum(h_bcross_stuck .* h_bcross_stuck, dims=1)); dims=1)
 t_plot_bcross_stuck = thist_bcross_stuck[downsample] / (60 * 60)
 
-lineopts1 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[2], opacity = 0.8}
-lineopts2 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[4], opacity = 0.8}
+lineopts1 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[2], opacity = 1.0}
+lineopts2 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[4], opacity = 1.0}
+
+pin_bcross = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:" * format("k = {:.2e}", k_bcross)
+pin_bcross_stuck = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:" * format("k = {:.2e}", k_bcross_stuck)
 
 p = @pgf Axis(
     {
+        "grid style" = {"color" = color_grid},
+        "label style" = {"color" = color_text},
+        "tick label style" = {"color" = color_text},
+        "axis line style" = {"color" = color_axis},
         xmajorgrids,
         ymajorgrids,
         height = "2.5in",
@@ -83,19 +117,19 @@ p = @pgf Axis(
     PlotInc(lineopts2, Coordinates(t_plot_bcross_stuck, h̄_bcross_stuck)),
     [raw"\node ",
         {
-            pin = "[draw=black,fill=white]right:" * format("k = {:.2e}", k_bcross)
+            pin = pin_bcross
         },
         " at ",
         Coordinate(t_plot_bcross[10], h̄_bcross[10]),
         "{};"],
     [raw"\node ",
         {
-            pin = "[draw=black,fill=white]above:" * format("k = {:.2e}", k_bcross_stuck)
+            pin = pin_bcross_stuck
         },
         " at ",
         Coordinate(t_plot_bcross[70], h̄_bcross_stuck[70]),
         "{};"],
 )
 
-pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck.pdf"), p)
-pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck.tikz"), p, include_preamble=false)
+pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck" * color_mode * ".pdf"), p)
+pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck" * color_mode * ".tikz"), p, include_preamble=false)

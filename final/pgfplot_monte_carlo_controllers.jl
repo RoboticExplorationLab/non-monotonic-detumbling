@@ -14,6 +14,33 @@ include("../src/satellite_simulator.jl")
 SAVEAS_PDF = true
 lineopts = @pgf {no_marks, "very thick", style = "solid"}
 
+color_mode = "_dark_mode"
+# color_mode = "" # normal
+
+function color_to_pgf_string(c::Colors.Colorant)
+    rgb = convert(Colors.RGB{Float64}, c)
+    str = format("rgb,1:red,{:.4f};green,{:.4f};blue,{:.4f}", Colors.red(rgb), Colors.green(rgb), Colors.blue(rgb))
+    return raw"{" * str * raw"}"
+end
+
+if color_mode == "_dark_mode"
+    const color_grid = RGBA(([148, 148, 148, 255] ./ 255)...)
+    const color_text = RGBA(([205, 209, 209, 255] ./ 255)...)
+    const color_axis = color_text
+    const color_bg = RGBA(([0x00, 0x22, 0x39, 0xFF] ./ 255)...)
+else
+    const color_grid = RGBA(([191, 191, 191, 255] ./ 255)...)
+    const color_text = RGBA(([0, 0, 0, 255] ./ 255)...)
+    const color_axis = color_text
+    const color_bg = RGBA(([255, 255, 255, 255] ./ 255)...)
+end
+
+color_grid_pgf = color_to_pgf_string(color_grid)
+color_text_pgf = color_to_pgf_string(color_text)
+color_axis_pgf = color_to_pgf_string(color_axis)
+color_bg_pgf = color_to_pgf_string(color_bg)
+
+
 function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=500, file_suffix="")
     Ncontrollers = length(keys(mc_results))
     color_list = distinguishable_colors(Ncontrollers, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
@@ -46,12 +73,18 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
             t_plot_average .= t_plot
         end
         h̄_average ./= Ntrials
-        lineopts_foreground = @pgf {no_marks, line_width = "2pt", style = "dotted", color = "black", opacity = 1.0}
+        lineopts_foreground = @pgf {no_marks, line_width = "2pt", style = "dotted", color = color_axis, opacity = 1.0}
         push!(plot_incs,
             PlotInc(lineopts_foreground, Coordinates(t_plot_average, h̄_average)),
         )
         p = @pgf Axis(
             {
+                "grid style" = {"color" = color_grid},
+                "label style" = {"color" = color_text},
+                "title style" = {"color" = color_text},
+                "legend style" = {"draw" = color_axis, "fill" = color_bg, "text" = color_text},
+                "tick label style" = {"color" = color_text},
+                "axis line style" = {"color" = color_axis},
                 xmajorgrids,
                 ymajorgrids,
                 xlabel = "Time (hours)",
@@ -74,9 +107,9 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_vs_time" * file_suffix * ".pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_vs_time" * file_suffix * color_mode * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_vs_time" * file_suffix * ".tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_vs_time" * file_suffix * color_mode * ".tikz"), gp, include_preamble=false)
     end
 end
 
@@ -112,14 +145,19 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
                 # color = color_list[i],
                 draw = color_list[i],
                 fill = color_list[i],
-                fill_opacity = 0.7
+                fill_opacity = 1.0
             },
             Table(hist)
         )
-        avg_line_plot = [raw"\draw " * "($h_avg_i, 0) -- ($h_avg_i, $Ntrials);"]
+        avg_line_plot = [raw"\draw [color=" * color_axis_pgf * "]" * "($h_avg_i, 0) -- ($h_avg_i, $Ntrials);"]
 
         p = @pgf Axis(
             {
+                "grid style" = {"color" = color_grid},
+                "label style" = {"color" = color_text},
+                "title style" = {"color" = color_text},
+                "tick label style" = {"color" = color_text},
+                "axis line style" = {"color" = color_axis},
                 "ybar interval",
                 "xticklabel interval boundaries",
                 ymajorgrids,
@@ -138,7 +176,7 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
             avg_line_plot,
             [raw"\node ",
                 {
-                    pin = raw"[draw=black,fill=white]right:\footnotesize Average: " * format("{:.2e} Nms", h_avg_i)
+                    pin = raw"[draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * raw"]right:\footnotesize Average: " * format("{:.2e} Nms", h_avg_i)
                 },
                 " at ",
                 Coordinate(h_avg_i, (Ntrials / 2)),
@@ -158,9 +196,9 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_final_histogram" * file_suffix * ".pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "momentum_magnitude_final_histogram" * file_suffix * color_mode * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_final_histogram" * file_suffix * ".tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "momentum_magnitude_final_histogram" * file_suffix * color_mode * ".tikz"), gp, include_preamble=false)
     end
 end
 
@@ -207,15 +245,15 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
             {
                 draw = color_list[i],
                 fill = color_list[i],
-                fill_opacity = 0.7
+                fill_opacity = 1.0
             },
             # Table(hist)
             Coordinates(bins[1:end-1], cum[1:end-1])
         )
-        avg_line_plot = [raw"\draw " * "($t_done_i_avg, 0) -- ($t_done_i_avg, 100);"]
+        avg_line_plot = [raw"\draw [color=" * color_axis_pgf * "]" * "($t_done_i_avg, 0) -- ($t_done_i_avg, 100);"]
         avg_line_pin = @pgf [raw"\node ",
             {
-                pin = raw"[draw=black,fill=white,align=left]" * (t_done_i_avg > bins[end-1] / 2 ? "left" : "right") * raw":\scriptsize 50\% completed \\ \scriptsize" * format("{:.2f} hours", t_done_i_avg)
+                pin = raw"[draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * ",align=left]" * (t_done_i_avg > bins[end-1] / 2 ? "left" : "right") * raw":\scriptsize 50\% completed \\ \scriptsize" * format("{:.2f} hours", t_done_i_avg)
             },
             " at ",
             Coordinate(t_done_i_avg, 75),
@@ -227,9 +265,9 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
 
         pct_complete = cum[complete_idx_i]
         completed_hours_i = bins[complete_idx_i+1]
-        pct_complete_line_plot = [raw"\draw " * "($completed_hours_i, 0) -- ($completed_hours_i, 100);"]
+        pct_complete_line_plot = [raw"\draw [color=" * color_axis_pgf * "]" * "($completed_hours_i, 0) -- ($completed_hours_i, 100);"]
         pct_complete_yloc = 25 #pct_complete > 50 ? 25 : 75
-        pct_complete_label = [raw"\node [draw=black,fill=white,align=left] at " * "($(bins[end-10]), $pct_complete_yloc)" * raw"{\scriptsize " * "$(Int(floor(pct_complete)))" * raw"\%  completed\\ \scriptsize" * format("{:.2f} hours", completed_hours_i) * "};"]
+        pct_complete_label = [raw"\node [draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * ",align=left] at " * "($(bins[end-10]), $pct_complete_yloc)" * raw"{\scriptsize " * "$(Int(floor(pct_complete)))" * raw"\%  completed\\ \scriptsize" * format("{:.2f} hours", completed_hours_i) * "};"]
 
         if pct_complete < 50
             avg_line_pin = []
@@ -238,6 +276,11 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
 
         p = @pgf Axis(
             {
+                "grid style" = {"color" = color_grid},
+                "label style" = {"color" = color_text},
+                "title style" = {"color" = color_text},
+                "tick label style" = {"color" = color_text},
+                "axis line style" = {"color" = color_axis},
                 "ybar interval",
                 "xticklabel interval boundaries",
                 ymajorgrids,
@@ -272,9 +315,9 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
     @pgf gp = GroupPlot(groupopts, plots...)
 
     if SAVEAS_PDF
-        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_cumulative" * file_suffix * ".pdf"), gp)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "detumble_time_cumulative" * file_suffix * color_mode * ".pdf"), gp)
     else
-        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_cumulative" * file_suffix * ".tikz"), gp, include_preamble=false)
+        pgfsave(joinpath(@__DIR__, "..", "figs", "detumble_time_cumulative" * file_suffix * color_mode * ".tikz"), gp, include_preamble=false)
     end
 end
 
