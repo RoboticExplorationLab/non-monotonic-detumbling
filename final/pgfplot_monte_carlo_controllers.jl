@@ -63,7 +63,7 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
             h = J * ω
             h̄ = dropdims(sqrt.(sum(h .* h, dims=1)); dims=1)
             t_plot = thist[downsample] / (60 * 60)
-            lineopts_background = @pgf {no_marks, "very thick", style = "solid", color = color_list[controller_idx], opacity = 0.4}
+            lineopts_background = @pgf {no_marks, "very thick", style = "solid", color = color_list[controller_idx], opacity = color_mode == "_dark_mode" ? 1.0 : 0.4}
             push!(plot_incs,
                 PlotInc(lineopts_background, Coordinates(t_plot, h̄)),
             )
@@ -95,6 +95,8 @@ function pgf_mc_plot_momentum_magnitude_vs_time(mc_results, params; max_samples=
             plot_incs...,
             Legend([i == length(plot_incs) ? "Average" : "" for i = axes(plot_incs, 1)]))
         push!(plots, p)
+        controller_name_nospace = replace(controller_name, ' ' => '_')
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "individual", "momentum_magnitude_vs_time_" * controller_name_nospace * file_suffix * color_mode * ".pdf"), p)
         controller_idx += 1
     end
     @pgf groupopts = {
@@ -183,6 +185,8 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
                 "{};"],
         )
         push!(plots, p)
+        controller_name_nospace = replace(controller_names[i], ' ' => '_')
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "individual", "momentum_magnitude_final_histogram_" * controller_name_nospace * file_suffix * color_mode * ".pdf"), p)
         max_ylim = max(max_ylim, maximum(hist.weights))
     end
 
@@ -303,6 +307,8 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
             pct_complete_label
         )
         push!(plots, p)
+        controller_name_nospace = replace(controller_names[i], ' ' => '_')
+        pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "individual", "detumble_time_cumulative_" * controller_name_nospace * file_suffix * color_mode * ".pdf"), p)
     end
 
     @pgf groupopts = {
