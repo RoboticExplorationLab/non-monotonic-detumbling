@@ -69,6 +69,11 @@ x0 = [
     0.8726646259971648
 ]
 
+B0_body = magnetic_B_vector_body(x0, 0.0, params)
+B0_body_normed = B0_body / norm(B0_body)
+w0_norm = norm(x0[11:13])
+x0[11:13] = w0_norm * B0_body_normed
+
 tspan = (0.0, 5 * 60 * 60.0)
 
 x_osc_0 = SatelliteDynamics.sCARTtoOSC(x0[1:6])
@@ -78,6 +83,8 @@ xhist_bcross, uhist_bcross, thist_bcross = simulate_satellite_orbit_attitude_rk4
 
 k_bcross_stuck = 100 * k_bcross
 xhist_bcross_stuck, uhist_bcross_stuck, thist_bcross_stuck = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=0.1, controller=(x, t, m) -> bcross_control(x, t, m; k=k_bcross_stuck, saturate=true), controller_dt=0.0)
+
+xhist_nonmon, uhist_nonmon, thist_nonmon = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=0.1, controller=(x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e3, saturate=true, α=100.0, tderivative=10 * 60, time_step=0.1), controller_dt=0.0)
 
 J = params.satellite_model.inertia
 downsample = get_downsample(length(thist_bcross), 100)
@@ -92,8 +99,14 @@ h_bcross_stuck = J * ω_bcross_stuck
 h̄_bcross_stuck = dropdims(sqrt.(sum(h_bcross_stuck .* h_bcross_stuck, dims=1)); dims=1)
 t_plot_bcross_stuck = thist_bcross_stuck[downsample] / (60 * 60)
 
+ω_nonmon = xhist_nonmon[11:13, downsample]
+h_nonmon = J * ω_nonmon
+h̄_nonmon = dropdims(sqrt.(sum(h_nonmon .* h_nonmon, dims=1)); dims=1)
+t_plot_nonmon = thist_nonmon[downsample] / (60 * 60)
+
 lineopts1 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[2], opacity = 1.0}
 lineopts2 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[4], opacity = 1.0}
+lineopts3 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[3], opacity = 1.0}
 
 pin_bcross = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:" * format("k = {:.2e}", k_bcross)
 pin_bcross_stuck = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:" * format("k = {:.2e}", k_bcross_stuck)
@@ -133,3 +146,51 @@ p = @pgf Axis(
 
 pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck" * color_mode * ".pdf"), p)
 pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck" * color_mode * ".tikz"), p, include_preamble=false)
+
+pin_bcross = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:B-cross " * format("k = {:.2e}", k_bcross)
+pin_bcross_stuck = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:B-cross " * format("k = {:.2e}", k_bcross_stuck)
+pin_nonmon = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:Non-monotonic"
+
+p_2 = @pgf Axis(
+    {
+        "grid style" = {"color" = color_grid},
+        "label style" = {"color" = color_text},
+        "tick label style" = {"color" = color_text},
+        "axis line style" = {"color" = color_axis},
+        xmajorgrids,
+        ymajorgrids,
+        height = "2.5in",
+        width = "3.5in",
+        xlabel = "Time (hours)",
+        ylabel = L"$\|h\|$ (Nms)",
+        legend_pos = "north east",
+        title = raw"{\rule{0pt}{1pt}}",
+    },
+    PlotInc(lineopts1, Coordinates(t_plot_bcross, h̄_bcross)),
+    PlotInc(lineopts2, Coordinates(t_plot_bcross_stuck, h̄_bcross_stuck)),
+    PlotInc(lineopts3, Coordinates(t_plot_nonmon, h̄_nonmon)),
+    [raw"\node ",
+        {
+            pin = pin_bcross
+        },
+        " at ",
+        Coordinate(t_plot_bcross[10], h̄_bcross[10]),
+        "{};"],
+    [raw"\node ",
+        {
+            pin = pin_bcross_stuck
+        },
+        " at ",
+        Coordinate(t_plot_bcross[70], h̄_bcross_stuck[70]),
+        "{};"],
+    [raw"\node ",
+        {
+            pin = pin_nonmon
+        },
+        " at ",
+        Coordinate(t_plot_nonmon[3], h̄_nonmon[3]),
+        "{};"],
+)
+
+pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck_nonmon" * color_mode * ".pdf"), p_2)
+pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck_nonmon" * color_mode * ".tikz"), p_2, include_preamble=false)
