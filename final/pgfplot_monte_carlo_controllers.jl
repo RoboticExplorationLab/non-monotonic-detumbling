@@ -178,7 +178,7 @@ function pgf_mc_plot_momentum_magnitude_final_histogram(mc_results, params; file
             avg_line_plot,
             [raw"\node ",
                 {
-                    pin = raw"[draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * raw"]right:\footnotesize Average: " * format("{:.2e} Nms", h_avg_i)
+                    pin = raw"[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * raw"]right:\footnotesize Average: " * format("{:.2f} \\mu Nms", 1e6 * h_avg_i)
                 },
                 " at ",
                 Coordinate(h_avg_i, (Ntrials / 2)),
@@ -257,7 +257,7 @@ function pgf_mc_plot_detumble_time_cumulative(mc_results, params; terminal_thres
         avg_line_plot = [raw"\draw [color=" * color_axis_pgf * "]" * "($t_done_i_avg, 0) -- ($t_done_i_avg, 100);"]
         avg_line_pin = @pgf [raw"\node ",
             {
-                pin = raw"[draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * ",align=left]" * (t_done_i_avg > bins[end-1] / 2 ? "left" : "right") * raw":\scriptsize 50\% completed \\ \scriptsize" * format("{:.2f} hours", t_done_i_avg)
+                pin = raw"[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},draw=" * color_axis_pgf * ",fill=" * color_bg_pgf * ",text=" * color_text_pgf * ",align=left]" * (t_done_i_avg > bins[end-1] / 2 ? "left" : "right") * raw":\scriptsize 50\% completed \\ \scriptsize" * format("{:.2f} hours", t_done_i_avg)
             },
             " at ",
             Coordinate(t_done_i_avg, 75),
