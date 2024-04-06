@@ -142,7 +142,7 @@ function bmomentum_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsPara
     return m
 end
 
-function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), ϵ=10e-4, k1=1.0, k2=1.0, saturate=true)
+function projection_control(x::Vector{<:Real}, t::Real, params::OrbitDynamicsParameters; B=measure_magnetic_B_vector_body(x, t, params), ϵ=1e-8, k1=1.0, k2=1.0, saturate=true)
     ω = measure_angular_velocity(x, t, params)
     J = params.satellite_model.inertia
     Bnorm = norm(B)
