@@ -51,7 +51,7 @@ controllers = Dict(
         "gains" => 1.0 * (10.0 .^ sweep_range)
     ),
     "Projection-based" => Dict(
-        "controller" => (x_, t_, p_, k_, B_) -> projection_control(x_, t_, p_; k1=k_, k2=10.0, saturate=true),
+        "controller" => (x_, t_, p_, k_, B_) -> projection_control(x_, t_, p_; k1=k_, k2=4.0, saturate=true),
         "gains" => 0.05 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
