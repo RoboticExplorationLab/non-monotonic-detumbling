@@ -53,20 +53,38 @@ params = OrbitDynamicsParameters(py4_model_no_noise_diagonal;
     add_sun_thirdbody=true,
     add_moon_thirdbody=true)
 
+# initial conditions used in the paper
+# x0 = [
+#     6.77710395701087e6
+#     -118294.78959490504
+#     0.0
+#     86.02735177981981
+#     4928.503682661721
+#     5874.456678131549
+#     0.15508705047693072
+#     0.3746535184890531
+#     0.9141021539511538
+#     -0.0
+#     0.0
+#     0.0
+#     0.8726646259971648
+# ]
+
+# initial conditions used in the slides
 x0 = [
-    6.77710395701087e6
-    -118294.78959490504
-    0.0
-    86.02735177981981
-    4928.503682661721
-    5874.456678131549
-    0.15508705047693072
-    0.3746535184890531
-    0.9141021539511538
-    -0.0
-    0.0
-    0.0
-    0.8726646259971648
+    1.9394507081343518e6
+    4.766642029817451e6
+    -4.411438134177178e6
+    5444.6283277223
+    -4691.101972534811
+    -2675.140215905073
+    -0.7353624981952477
+    0.32177790229023334
+    0.4367418868778419
+    0.4061496055545587
+    0.0713423406637996
+    0.3955777863977627
+    0.3355356361778791
 ]
 
 B0_body = magnetic_B_vector_body(x0, 0.0, params)
@@ -74,7 +92,7 @@ B0_body_normed = B0_body / norm(B0_body)
 w0_norm = norm(x0[11:13])
 x0[11:13] = w0_norm * B0_body_normed
 
-tspan = (0.0, 5 * 60 * 60.0)
+tspan = (0.0, 4 * 60 * 60.0)
 
 x_osc_0 = SatelliteDynamics.sCARTtoOSC(x0[1:6])
 
@@ -87,7 +105,7 @@ xhist_bcross_stuck, uhist_bcross_stuck, thist_bcross_stuck = simulate_satellite_
 xhist_nonmon, uhist_nonmon, thist_nonmon = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=0.1, controller=(x_, t_, p_) -> bderivative_control(x_, t_, p_; k=3e3, saturate=true, α=100.0, tderivative=10 * 60, time_step=0.1), controller_dt=0.0)
 
 J = params.satellite_model.inertia
-downsample = get_downsample(length(thist_bcross), 100)
+downsample = get_downsample(length(thist_bcross), 200)
 
 ω_bcross = xhist_bcross[11:13, downsample]
 h_bcross = J * ω_bcross
@@ -108,8 +126,8 @@ lineopts1 = @pgf {no_marks, "very thick", style = "solid", color = detumble_colo
 lineopts2 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[4], opacity = 1.0}
 lineopts3 = @pgf {no_marks, "very thick", style = "solid", color = detumble_color_list[3], opacity = 1.0}
 
-pin_bcross = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:" * format("k = {:.2e}", k_bcross)
-pin_bcross_stuck = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:" * format("k = {:.2e}", k_bcross_stuck)
+pin_bcross = "[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:" * format("k = {:.2e}", k_bcross)
+pin_bcross_stuck = "[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:" * format("k = {:.2e}", k_bcross_stuck)
 
 p = @pgf Axis(
     {
@@ -133,23 +151,23 @@ p = @pgf Axis(
             pin = pin_bcross
         },
         " at ",
-        Coordinate(t_plot_bcross[10], h̄_bcross[10]),
+        Coordinate(t_plot_bcross[15], h̄_bcross[15]),
         "{};"],
     [raw"\node ",
         {
             pin = pin_bcross_stuck
         },
         " at ",
-        Coordinate(t_plot_bcross[70], h̄_bcross_stuck[70]),
+        Coordinate(t_plot_bcross[140], h̄_bcross_stuck[140]),
         "{};"],
 )
 
 pgfsave(joinpath(@__DIR__, "..", "figs", "pdf", "bcross_stuck" * color_mode * ".pdf"), p)
 pgfsave(joinpath(@__DIR__, "..", "figs", "bcross_stuck" * color_mode * ".tikz"), p, include_preamble=false)
 
-pin_bcross = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:B-cross " * format("k = {:.2e}", k_bcross)
-pin_bcross_stuck = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:B-cross " * format("k = {:.2e}", k_bcross_stuck)
-pin_nonmon = "[text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:Non-monotonic"
+pin_bcross = "[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:B-cross " * format("k = {:.2e}", k_bcross)
+pin_bcross_stuck = "[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]above:B-cross " * format("k = {:.2e}", k_bcross_stuck)
+pin_nonmon = "[thick,pin edge={draw=" * color_axis_pgf * ",ultra thick},text=" * color_text_pgf * ", fill=" * color_bg_pgf * ", draw=" * color_text_pgf * "]right:Non-monotonic"
 
 p_2 = @pgf Axis(
     {
@@ -174,21 +192,21 @@ p_2 = @pgf Axis(
             pin = pin_bcross
         },
         " at ",
-        Coordinate(t_plot_bcross[10], h̄_bcross[10]),
+        Coordinate(t_plot_bcross[15], h̄_bcross[15]),
         "{};"],
     [raw"\node ",
         {
             pin = pin_bcross_stuck
         },
         " at ",
-        Coordinate(t_plot_bcross[70], h̄_bcross_stuck[70]),
+        Coordinate(t_plot_bcross[140], h̄_bcross_stuck[140]),
         "{};"],
     [raw"\node ",
         {
             pin = pin_nonmon
         },
         " at ",
-        Coordinate(t_plot_nonmon[3], h̄_nonmon[3]),
+        Coordinate(t_plot_nonmon[11], h̄_nonmon[11]),
         "{};"],
 )
 
