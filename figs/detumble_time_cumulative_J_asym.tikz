@@ -1,0 +1,97 @@
+% Recommended preamble:
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size={3 by 2}, horizontal sep={0.5in}, vertical sep={0.9in}}, height={2in}, width={3.5in}, ymin={0}, ymax={100}]
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, xlabel={Time (hours)}, xtick={0.0,0.5,1.0,1.5,2.0}, title={Discrete Non-monotonic}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, yticklabel={$\pgfmathprintnumber\tick\,\%$}]
+    \addplot[draw={rgb,1:red,0.7804;green,0.1294;blue,0.8667}, fill={rgb,1:red,0.7804;green,0.1294;blue,0.8667}, fill opacity={1.0}]
+        coordinates {
+            (0.0,0.0)
+            (0.2,0.0)
+            (0.4,0.0)
+            (0.6,40.0)
+            (0.8,90.0)
+            (1.0,100.0)
+            (1.2,100.0)
+            (1.4,100.0)
+            (1.6,100.0)
+            (1.8,100.0)
+            (2.0,100.0)
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](0.8, 0) -- (0.8, 100);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000}, thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left]right:\scriptsize 50\% completed \\ \scriptsize0.80 hours}]  at 
+    (0.8,75)
+    {};
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](1.2, 0) -- (1.2, 100);
+    \node [thick,draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left] at (0.2, 25){\scriptsize 100\%  completed\\ \scriptsize1.20 hours};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, xlabel={Time (hours)}, xtick={0.0,0.5,1.0,1.5,2.0}, title={B-dot}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, yticklabel={$\pgfmathprintnumber\tick\,\%$}]
+    \addplot[draw={rgb,1:red,0.8196;green,0.2902;blue,0.0}, fill={rgb,1:red,0.8196;green,0.2902;blue,0.0}, fill opacity={1.0}]
+        coordinates {
+            (0.0,0.0)
+            (0.2,0.0)
+            (0.4,0.0)
+            (0.6,0.0)
+            (0.8,0.0)
+            (1.0,10.0)
+            (1.2,30.0)
+            (1.4,50.0)
+            (1.6,60.0)
+            (1.8,70.0)
+            (2.0,100.0)
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](1.6, 0) -- (1.6, 100);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000}, thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left]left:\scriptsize 50\% completed \\ \scriptsize1.60 hours}]  at 
+    (1.6,75)
+    {};
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](2.0, 0) -- (2.0, 100);
+    \node [thick,draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left] at (0.2, 25){\scriptsize 70\%  completed\\ \scriptsize2.00 hours};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, xlabel={Time (hours)}, xtick={0.0,0.5,1.0,1.5,2.0}, title={Projection-based}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, yticklabel={$\pgfmathprintnumber\tick\,\%$}]
+    \addplot[draw={rgb,1:red,0.0;green,0.549;blue,0.0}, fill={rgb,1:red,0.0;green,0.549;blue,0.0}, fill opacity={1.0}]
+        coordinates {
+            (0.0,0.0)
+            (0.2,0.0)
+            (0.4,0.0)
+            (0.6,10.0)
+            (0.8,40.0)
+            (1.0,60.0)
+            (1.2,80.0)
+            (1.4,80.0)
+            (1.6,80.0)
+            (1.8,90.0)
+            (2.0,100.0)
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](1.0, 0) -- (1.0, 100);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000}, thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left]right:\scriptsize 50\% completed \\ \scriptsize1.00 hours}]  at 
+    (1.0,75)
+    {};
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](2.0, 0) -- (2.0, 100);
+    \node [thick,draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left] at (0.2, 25){\scriptsize 90\%  completed\\ \scriptsize2.00 hours};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, xlabel={Time (hours)}, xtick={0.0,0.5,1.0,1.5,2.0}, title={B-cross}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, yticklabel={$\pgfmathprintnumber\tick\,\%$}]
+    \addplot[draw={rgb,1:red,0.0;green,0.498;blue,0.6941}, fill={rgb,1:red,0.0;green,0.498;blue,0.6941}, fill opacity={1.0}]
+        coordinates {
+            (0.0,0.0)
+            (0.2,0.0)
+            (0.4,0.0)
+            (0.6,0.0)
+            (0.8,0.0)
+            (1.0,0.0)
+            (1.2,0.0)
+            (1.4,30.0)
+            (1.6,50.0)
+            (1.8,60.0)
+            (2.0,100.0)
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](1.8, 0) -- (1.8, 100);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000}, thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left]left:\scriptsize 50\% completed \\ \scriptsize1.80 hours}]  at 
+    (1.8,75)
+    {};
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](2.0, 0) -- (2.0, 100);
+    \node [thick,draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000},align=left] at (0.2, 25){\scriptsize 60\%  completed\\ \scriptsize2.00 hours};
+\end{groupplot}
+\end{tikzpicture}

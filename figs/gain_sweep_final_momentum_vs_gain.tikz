@@ -1,0 +1,251 @@
+% Recommended preamble:
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size={3 by 2}, horizontal sep={0.7in}, vertical sep={0.9in}}, height={2in}, width={3.5in}, ymin={3.125781427534293e-8}, ymax={0.002324199603132806}]
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={Lyapunov Momentum}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (20.000000000000004,0.0018196184797592658)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (200.0,7.641522232361307e-5)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (2000.0,3.473090475038103e-8)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (20000.0,0.00024473880887349335)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (200000.0,0.0005872259569295746)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.7804;green,0.1294;blue,0.8667}}]
+        coordinates {
+            (2.0e6,0.0006346262008919926)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (20.000000000000004,2.616151227517433e-5)
+            (200.0,2.616151227517433e-5)
+            (2000.0,2.616151227517433e-5)
+            (20000.0,2.616151227517433e-5)
+            (200000.0,2.616151227517433e-5)
+            (2.0e6,2.616151227517433e-5)
+        }
+        ;
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={B-dot Variant}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (0.004000000000000001,0.0021129087301207327)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (0.04000000000000001,0.0003226194331964365)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (0.4,1.1122614062447085e-5)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (4.0,1.7114838094922684e-5)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (40.0,2.3345683895446514e-5)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.2902;blue,0.0}}]
+        coordinates {
+            (400.0,2.6714512196405784e-5)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (0.004000000000000001,2.616151227517433e-5)
+            (0.04000000000000001,2.616151227517433e-5)
+            (0.4,2.616151227517433e-5)
+            (4.0,2.616151227517433e-5)
+            (40.0,2.616151227517433e-5)
+            (400.0,2.616151227517433e-5)
+        }
+        ;
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={Discrete Non-monotonic}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (30.000000000000007,0.0017914393768000132)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (300.0,4.068949923418592e-5)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (3000.0,8.17797026140261e-8)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (30000.0,9.90135200146564e-8)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (300000.0,7.13600534860482e-7)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.549;blue,0.0}}]
+        coordinates {
+            (3.0e6,5.453684662074618e-7)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (30.000000000000007,2.616151227517433e-5)
+            (300.0,2.616151227517433e-5)
+            (3000.0,2.616151227517433e-5)
+            (30000.0,2.616151227517433e-5)
+            (300000.0,2.616151227517433e-5)
+            (3.0e6,2.616151227517433e-5)
+        }
+        ;
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={B-dot}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (0.010000000000000002,0.001537119482557744)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (0.1,9.880190072886899e-6)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (1.0,8.031479623798246e-6)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (10.0,0.0003669556355390015)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (100.0,0.0006700652685467924)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.0;green,0.498;blue,0.6941}}]
+        coordinates {
+            (1000.0,0.000684997049804912)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (0.010000000000000002,2.616151227517433e-5)
+            (0.1,2.616151227517433e-5)
+            (1.0,2.616151227517433e-5)
+            (10.0,2.616151227517433e-5)
+            (100.0,2.616151227517433e-5)
+            (1000.0,2.616151227517433e-5)
+        }
+        ;
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={Projection-based}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (0.0005000000000000001,0.00048116845930272647)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (0.005000000000000001,2.2316775364988414e-6)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (0.05,2.307445463355077e-7)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (0.5,9.152355397809236e-6)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (5.0,0.00041456133426119503)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.8196;green,0.6745;blue,0.0}}]
+        coordinates {
+            (50.0,0.0006227507581279675)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (0.0005000000000000001,2.616151227517433e-5)
+            (0.005000000000000001,2.616151227517433e-5)
+            (0.05,2.616151227517433e-5)
+            (0.5,2.616151227517433e-5)
+            (5.0,2.616151227517433e-5)
+            (50.0,2.616151227517433e-5)
+        }
+        ;
+    \nextgroupplot[xmode=log,ymode=log, set layers={standard}, xmajorgrids, ymajorgrids, xlabel={Gain ($k$)}, ylabel={$\|h\|$ (Nms)}, legend pos={north east}, title={B-cross}]
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (4.000000000000001e-7,0.0013543702364754002)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (4.000000000000001e-6,4.746523682368248e-6)
+        }
+        ;
+    \addplot+[mark={square*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (4.0e-5,3.351772860638411e-6)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (0.0004,0.0004273673189157416)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (0.004,0.0007053167508972895)
+        }
+        ;
+    \addplot+[mark={*}, only marks, mark size={4pt}, mark options={color={rgb,1:red,0.5294;green,0.0;blue,0.2118}}]
+        coordinates {
+            (0.04,0.000724251736098344)
+        }
+        ;
+    \addplot+[no marks, line width={1.25pt}, style={densely dotted}, color={black}, opacity={0.8}]
+        coordinates {
+            (4.000000000000001e-7,2.616151227517433e-5)
+            (4.000000000000001e-6,2.616151227517433e-5)
+            (4.0e-5,2.616151227517433e-5)
+            (0.0004,2.616151227517433e-5)
+            (0.004,2.616151227517433e-5)
+            (0.04,2.616151227517433e-5)
+        }
+        ;
+\end{groupplot}
+\end{tikzpicture}

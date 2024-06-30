@@ -1,0 +1,93 @@
+% Recommended preamble:
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size={3 by 2}, horizontal sep={0.5in}, vertical sep={0.8in}}, height={2in}, width={3.5in}, ymin={0}, ymax={10.0}]
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, ylabel={Count}, xlabel={$\|h\|$ (Nms)}, xtick={0.0,9.0295181260705e-5,0.00018059036252141,0.000270885543782115,0.00036118072504282}, title={Discrete Non-monotonic}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, xticklabel style={font={\footnotesize}}]
+    \addplot+[draw={rgb,1:red,0.7804;green,0.1294;blue,0.8667}, fill={rgb,1:red,0.7804;green,0.1294;blue,0.8667}, fill opacity={1.0}]
+        table[row sep={\\}]
+        {
+            \\
+            0.0  10.0  \\
+            4.0131191671424445e-5  0.0  \\
+            8.026238334284889e-5  0.0  \\
+            0.00012039357501427334  0.0  \\
+            0.00016052476668569778  0.0  \\
+            0.00020065595835712223  0.0  \\
+            0.00024078715002854667  0.0  \\
+            0.0002809183416999711  0.0  \\
+            0.00032104953337139556  0.0  \\
+            0.00036118072504282  0.0  \\
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](7.63417171429981e-9, 0) -- (7.63417171429981e-9, 10);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},ultra thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000}]right:\footnotesize Average: 0.01 \mu Nms}]  at 
+    (7.63417171429981e-9,5.0)
+    {};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, ylabel={Count}, xlabel={$\|h\|$ (Nms)}, xtick={0.0,9.0295181260705e-5,0.00018059036252141,0.000270885543782115,0.00036118072504282}, title={B-dot}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, xticklabel style={font={\footnotesize}}]
+    \addplot+[draw={rgb,1:red,0.8196;green,0.2902;blue,0.0}, fill={rgb,1:red,0.8196;green,0.2902;blue,0.0}, fill opacity={1.0}]
+        table[row sep={\\}]
+        {
+            \\
+            0.0  9.0  \\
+            4.0131191671424445e-5  0.0  \\
+            8.026238334284889e-5  0.0  \\
+            0.00012039357501427334  0.0  \\
+            0.00016052476668569778  0.0  \\
+            0.00020065595835712223  1.0  \\
+            0.00024078715002854667  0.0  \\
+            0.0002809183416999711  0.0  \\
+            0.00032104953337139556  0.0  \\
+            0.00036118072504282  0.0  \\
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](3.5853229611775154e-5, 0) -- (3.5853229611775154e-5, 10);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},ultra thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000}]right:\footnotesize Average: 35.85 \mu Nms}]  at 
+    (3.5853229611775154e-5,5.0)
+    {};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, ylabel={Count}, xlabel={$\|h\|$ (Nms)}, xtick={0.0,9.0295181260705e-5,0.00018059036252141,0.000270885543782115,0.00036118072504282}, title={Projection-based}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, xticklabel style={font={\footnotesize}}]
+    \addplot+[draw={rgb,1:red,0.0;green,0.549;blue,0.0}, fill={rgb,1:red,0.0;green,0.549;blue,0.0}, fill opacity={1.0}]
+        table[row sep={\\}]
+        {
+            \\
+            0.0  9.0  \\
+            4.0131191671424445e-5  0.0  \\
+            8.026238334284889e-5  0.0  \\
+            0.00012039357501427334  1.0  \\
+            0.00016052476668569778  0.0  \\
+            0.00020065595835712223  0.0  \\
+            0.00024078715002854667  0.0  \\
+            0.0002809183416999711  0.0  \\
+            0.00032104953337139556  0.0  \\
+            0.00036118072504282  0.0  \\
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](1.3520088266104465e-5, 0) -- (1.3520088266104465e-5, 10);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},ultra thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000}]right:\footnotesize Average: 13.52 \mu Nms}]  at 
+    (1.3520088266104465e-5,5.0)
+    {};
+    \nextgroupplot[grid style={color={rgb,1:red,0.749;green,0.749;blue,0.749}}, label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, title style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, axis line style={color={rgb,1:red,0.0;green,0.0;blue,0.0}}, ybar interval, xticklabel interval boundaries, ymajorgrids, xmajorgrids={false}, ylabel={Count}, xlabel={$\|h\|$ (Nms)}, xtick={0.0,9.0295181260705e-5,0.00018059036252141,0.000270885543782115,0.00036118072504282}, title={B-cross}, xticklabel={$[\pgfmathprintnumber\tick,\pgfmathprintnumber\nexttick)$}, xticklabel style={font={\footnotesize}}]
+    \addplot+[draw={rgb,1:red,0.0;green,0.498;blue,0.6941}, fill={rgb,1:red,0.0;green,0.498;blue,0.6941}, fill opacity={1.0}]
+        table[row sep={\\}]
+        {
+            \\
+            0.0  7.0  \\
+            4.0131191671424445e-5  1.0  \\
+            8.026238334284889e-5  1.0  \\
+            0.00012039357501427334  0.0  \\
+            0.00016052476668569778  0.0  \\
+            0.00020065595835712223  0.0  \\
+            0.00024078715002854667  0.0  \\
+            0.0002809183416999711  0.0  \\
+            0.00032104953337139556  0.0  \\
+            0.00036118072504282  0.0  \\
+        }
+        ;
+    \draw [color={rgb,1:red,0.0000;green,0.0000;blue,0.0000}](5.920622959284448e-5, 0) -- (5.920622959284448e-5, 10);
+    \node 
+    [pin={[thick,pin edge={draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},ultra thick},draw={rgb,1:red,0.0000;green,0.0000;blue,0.0000},fill={rgb,1:red,1.0000;green,1.0000;blue,1.0000},text={rgb,1:red,0.0000;green,0.0000;blue,0.0000}]right:\footnotesize Average: 59.21 \mu Nms}]  at 
+    (5.920622959284448e-5,5.0)
+    {};
+\end{groupplot}
+\end{tikzpicture}

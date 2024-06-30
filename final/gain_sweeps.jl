@@ -8,7 +8,7 @@ include("../src/satellite_simulator.jl")
 include("../src/detumble_controller.jl")
 include("../src/satellite_models.jl")
 
-params = OrbitDynamicsParameters(py4_model_diagonal;
+params = OrbitDynamicsParameters(py4_model;
     distance_scale=1.0,
     time_scale=1.0,
     angular_rate_scale=1.0,
@@ -27,6 +27,23 @@ q0 = [1.0, 0.0, 0.0, 0.0]
 ω0 = [0.0, 0.0, 0.0]
 x0 = state_from_osc(x_osc_0, q0, ω0)
 x0 = h_B_aligned_initial_conditions(x0, deg2rad(50), params)
+
+# some of the more challenging initial conditions we saw in the monte carlo
+x0 = [
+    1.9394507081343518e6
+    4.766642029817451e6
+    -4.411438134177178e6
+    5444.6283277223
+    -4691.101972534811
+    -2675.140215905073
+    -0.7353624981952477
+    0.32177790229023334
+    0.4367418868778419
+    0.4061496055545587
+    -0.12278823012576702
+    0.4537912758152992
+    0.23054762272585327
+]
 
 integrator_dt = 0.1
 controller_dt = 0.0
@@ -55,7 +72,7 @@ controllers = Dict(
         "gains" => 0.05 * (10.0 .^ sweep_range)
     ),
     "Discrete Non-monotonic" => Dict(
-        "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=1.0, Bhist=B_, time_step=integrator_dt),
+        "controller" => (x_, t_, p_, k_, B_) -> bderivative_control(x_, t_, p_; k=k_, saturate=true, α=100.0, Bhist=B_, time_step=integrator_dt),
         "gains" => 3e3 .* (10.0 .^ sweep_range)
     ),
 )

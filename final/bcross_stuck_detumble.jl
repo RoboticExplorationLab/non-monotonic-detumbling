@@ -15,8 +15,8 @@ include("../src/satellite_models.jl")
 
 detumble_color_list = distinguishable_colors(6, [RGB(1, 1, 1), RGB(0, 0, 0)], dropseed=true)
 
-color_mode = "_dark_mode"
-# color_mode = "" # normal
+# color_mode = "_dark_mode"
+color_mode = "" # normal
 
 function color_to_pgf_string(c::Colors.Colorant)
     rgb = convert(Colors.RGB{Float64}, c)
@@ -42,16 +42,16 @@ color_axis_pgf = color_to_pgf_string(color_axis)
 color_bg_pgf = color_to_pgf_string(color_bg)
 
 
-params = OrbitDynamicsParameters(py4_model_no_noise_diagonal;
+params = OrbitDynamicsParameters(py4_model;
     distance_scale=1.0,
     time_scale=1.0,
     angular_rate_scale=1.0,
     control_scale=1,
     control_type=:dipole,
     magnetic_model=:IGRF13,
-    add_solar_radiation_pressure=true,
-    add_sun_thirdbody=true,
-    add_moon_thirdbody=true)
+    add_solar_radiation_pressure=false,
+    add_sun_thirdbody=false,
+    add_moon_thirdbody=false)
 
 # initial conditions used in the paper
 # x0 = [
@@ -92,11 +92,13 @@ B0_body_normed = B0_body / norm(B0_body)
 w0_norm = norm(x0[11:13])
 x0[11:13] = w0_norm * B0_body_normed
 
+println("Initial conditions: \n", x0)
+
 tspan = (0.0, 4 * 60 * 60.0)
 
 x_osc_0 = SatelliteDynamics.sCARTtoOSC(x0[1:6])
 
-k_bcross = bcross_gain(x_osc_0, params)
+k_bcross = 4e-5 #bcross_gain(x_osc_0, params)
 xhist_bcross, uhist_bcross, thist_bcross = simulate_satellite_orbit_attitude_rk4(x0, params, tspan; integrator_dt=0.1, controller=(x, t, m) -> bcross_control(x, t, m; k=k_bcross, saturate=true), controller_dt=0.0)
 
 k_bcross_stuck = 100 * k_bcross
@@ -151,7 +153,7 @@ p = @pgf Axis(
             pin = pin_bcross
         },
         " at ",
-        Coordinate(t_plot_bcross[15], h̄_bcross[15]),
+        Coordinate(t_plot_bcross[55], h̄_bcross[55]),
         "{};"],
     [raw"\node ",
         {
@@ -192,7 +194,7 @@ p_2 = @pgf Axis(
             pin = pin_bcross
         },
         " at ",
-        Coordinate(t_plot_bcross[15], h̄_bcross[15]),
+        Coordinate(t_plot_bcross[55], h̄_bcross[55]),
         "{};"],
     [raw"\node ",
         {

@@ -208,6 +208,21 @@ py4_model_no_noise = SatelliteModel(
     0.0,
 )
 
+py4_model_no_noise_diag = SatelliteModel(
+    py4_mass_measured, # mass
+    Matrix(eigvals(py4_inertia_matrix)[end] .* I(3)), # inertia
+    [0.0, 0.0, 0.0], # center of mass offset from geometric center
+    py4_faces, # faces for comuting drag
+    2.2, # coefficient of drag
+    0.1^2, # min drag area
+    (2 * 0.2 * 0.15 + 0.1 * 0.15), # max drag area
+    py4_dipole_magnitude,
+    0.0,
+    0.0,
+    zeros(3),
+    0.0,
+)
+
 py4_model_nodrag = SatelliteModel(
     py4_model.mass,
     py4_model.inertia,
